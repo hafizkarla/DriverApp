@@ -6,4 +6,7 @@
     <color name="lightGray">#ECECEC</color>
     <color name="blue">#5C9DC0</color>
     <color name="space">#181C1F</color>
+    <color name="progress_bar_color">#151828</color>
+    <color name="dark_gray">#656565</color>
+    <color name="startuber">#227159</color>
 </resources>
