@@ -101,11 +101,19 @@ class DriverHomeActivity : AppCompatActivity() {
         val txt_star=headerView.findViewById<View>(R.id.txt_star) as TextView
         img_avatar=headerView.findViewById<View>(R.id.img_avatar) as ImageView
 
+        //additional
+        val txt_motor_type =headerView.findViewById<View>(R.id.txt_motor_type) as TextView
+        val txt_vehicle_number=headerView.findViewById<View>(R.id.txt_vehicle_number) as TextView
+
         txt_name.setText(Comon.buildWelcomMessage())
         txt_phone.setText(Comon.currentUser!!.phoneNumber)
         txt_star.setText(StringBuilder().append(Comon.currentUser!!.rating))
 
-        if (Comon.currentUser !=null &&Comon.currentUser!!.avatar !=null && TextUtils.isEmpty(Comon.currentUser!!.avatar))
+        //additional
+        txt_motor_type.setText(Comon.currentUser!!.motorType)
+        txt_vehicle_number.setText(Comon.currentUser!!.vehicleLicenseNumber)
+
+        if (Comon.currentUser !=null &&Comon.currentUser!!.avatar !=null)
         {
             Glide.with(this)
                 .load(Comon.currentUser!!.avatar)

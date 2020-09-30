@@ -143,6 +143,10 @@ class SplashScreenActivity : AppCompatActivity() {
         val edt_first_name = itemView.findViewById<View>(R.id.edt_first_name) as TextInputEditText
         val edt_last_name = itemView.findViewById<View>(R.id.edt_last_name) as TextInputEditText
         val edt_phone_number = itemView.findViewById<View>(R.id.edt_phone_number) as TextInputEditText
+        val edt_id_number = itemView.findViewById<View>(R.id.edt_id_number) as TextInputEditText
+        val edt_drive_license = itemView.findViewById<View>(R.id.edt_drive_license) as TextInputEditText
+        val edt_motor_type = itemView.findViewById<View>(R.id.edt_motor_type) as TextInputEditText
+        val edt_vehicle_license = itemView.findViewById<View>(R.id.edt_vehicle_license) as TextInputEditText
 
         val btn_continue = itemView.findViewById<View>(R.id.btn_register) as Button
 
@@ -170,12 +174,36 @@ class SplashScreenActivity : AppCompatActivity() {
                 Toast.makeText(this@SplashScreenActivity,"Please enter Phone Number",Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            else if(TextUtils.isEmpty(edt_id_number.text.toString())){
+                Toast.makeText(this@SplashScreenActivity,"Please enter Id Number",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            else if(TextUtils.isEmpty(edt_drive_license.text.toString())){
+                Toast.makeText(this@SplashScreenActivity,"Please enter Drive License",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            else if(TextUtils.isDigitsOnly(edt_motor_type.text.toString())){
+                Toast.makeText(this@SplashScreenActivity,"Please enter Motorcycle Type",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            else if(TextUtils.isDigitsOnly(edt_vehicle_license.text.toString())){
+                Toast.makeText(this@SplashScreenActivity,"Please enter Vehicle License Number",Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             else{
                 val model= DriverInfoModel()
                 model.firstName=edt_first_name.text.toString()
                 model.lastName=edt_last_name.text.toString()
                 model.phoneNumber=edt_phone_number.text.toString()
-                model.rating=0.0
+                model.rating=5.0
+
+                //additional
+                model.idNumber=edt_id_number.text.toString()
+                model.motorType=edt_motor_type.text.toString()
+                model.driveLicense=edt_drive_license.text.toString()
+                model.vehicleLicenseNumber=edt_vehicle_license.text.toString()
+
 
                 driverInfoRef.child(FirebaseAuth.getInstance().currentUser!!.uid)
                     .setValue(model)

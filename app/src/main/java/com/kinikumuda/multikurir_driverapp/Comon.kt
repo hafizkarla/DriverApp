@@ -101,10 +101,13 @@ object Comon {
         return unique.toString()
     }
 
+    val TRIP_KEY: String="TripKey"
+    val REQUEST_DRIVER_ACCEPT: String="Accept"
     val TRIP: String="Trips"
     val RIDER_INFO: String ="Riders" //same as firebase
     val DRIVER_KEY: String="DriverKey"
     val REQUEST_DRIVER_DECLINE: String="Decline"
+    val REQUEST_DRIVER_DONE:String="Done"
     val NOTI_BODY: String="body"
     val NOTI_TITLE: String="title"
     val RIDER_KEY: String="RiderKey"

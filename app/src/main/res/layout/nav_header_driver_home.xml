@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/nav_header_height"
-    android:background="@color/space"
+    android:background="#FF6600"
     android:gravity="bottom"
     android:orientation="vertical"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -46,7 +46,7 @@
     </LinearLayout>
 
     <TextView
-        android:fontFamily="@font/open_sans_light"
+        android:fontFamily="@font/open_sans_bold"
         android:id="@+id/txt_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -60,4 +60,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/nav_header_subtitle" />
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/open_sans_bold"
+        android:id="@+id/txt_motor_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/lightGray"
+        android:text="aerox" />
+    <TextView
+        android:fontFamily="@font/open_sans_bold"
+        android:id="@+id/txt_vehicle_number"
+        android:layout_width="wrap_content"
+        android:textColor="@color/lightGray"
+        android:layout_height="wrap_content"
+        android:text="B 1234 WOK" />
 </LinearLayout>

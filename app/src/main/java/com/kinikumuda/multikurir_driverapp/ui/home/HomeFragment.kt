@@ -2,12 +2,14 @@ package com.kinikumuda.multikurir_driverapp.ui.home
 
 import android.Manifest
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
+import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.text.TextUtils
@@ -17,7 +19,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.*
-import android.widget.Toast.*
+import android.widget.Toast.LENGTH_SHORT
+import android.widget.Toast.makeText
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -45,6 +48,7 @@ import com.karumi.dexter.listener.single.PermissionListener
 import com.kinikumuda.multikurir_driverapp.Comon
 import com.kinikumuda.multikurir_driverapp.DriverHomeActivity
 import com.kinikumuda.multikurir_driverapp.Model.EventBus.DriverRequestReceived
+import com.kinikumuda.multikurir_driverapp.Model.EventBus.OnDriverStart
 import com.kinikumuda.multikurir_driverapp.Model.RiderModel
 import com.kinikumuda.multikurir_driverapp.Model.TripPlanModel
 import com.kinikumuda.multikurir_driverapp.R
@@ -58,9 +62,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_home.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import org.jetbrains.anko.find
 import org.json.JSONObject
 import org.w3c.dom.Text
 import java.io.IOException
@@ -83,15 +89,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var img_round:ImageView
     private lateinit var layout_start_uber:CardView
     private lateinit var txt_rider_name:TextView
-    private lateinit var txt_start_uber_estimate_distance:TextView;
-    private lateinit var txt_start_uber_estimate_time:TextView;
+    private lateinit var txt_rider_number:TextView
+    private lateinit var txt_start_uber_estimate_distance:TextView
+    private lateinit var txt_start_uber_estimate_time:TextView
     private lateinit var img_phone_call:ImageView
-    private lateinit var btn_start_uber:LoadingButton
+    private lateinit var btn_call_driver:LoadingButton
+    private lateinit var btn_finish:LoadingButton
 
     private var isTripStart=false
     private var onlineSystemAlreadyRegister=false
 
     private var tripNumberId:String?=""
+    private var phoneNumber:String?=""
 
     //routes
     private val compositeDisposable= CompositeDisposable()
@@ -129,7 +138,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
 
         override fun onCancelled(p0: DatabaseError) {
-            Snackbar.make(mapFragment.requireView(),p0.message, Snackbar.LENGTH_LONG).show()
+            Snackbar.make(mapFragment.requireView(), p0.message, Snackbar.LENGTH_LONG).show()
         }
 
     }
@@ -150,7 +159,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         if (EventBus.getDefault().hasSubscriberForEvent(DriverHomeActivity::class.java))
             EventBus.getDefault().removeStickyEvent(DriverHomeActivity::class.java)
-        EventBus.getDefault().unregister(this);
+        EventBus.getDefault().unregister(this)
         super.onDestroy()
     }
 
@@ -176,7 +185,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_home, container, false)
 
-        initViews(root);
+        initViews(root)
         init()
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -188,21 +197,25 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun initViews(root: View?) {
         chip_decline=root!!.findViewById(R.id.chip_decline) as Chip
-        layout_accept=root!!.findViewById(R.id.layout_accept) as CardView
-        circularProgressBar=root!!.findViewById(R.id.circularProgressBar) as CircularProgressBar
-        txt_estimate_time=root!!.findViewById(R.id.txt_estimate_time) as TextView
-        txt_estimate_distance=root!!.findViewById(R.id.txt_estimate_distance) as TextView
-        root_layout=root!!.findViewById(R.id.root_layout) as FrameLayout
+        layout_accept= root.findViewById(R.id.layout_accept) as CardView
+        circularProgressBar= root.findViewById(R.id.circularProgressBar) as CircularProgressBar
+        txt_estimate_time= root.findViewById(R.id.txt_estimate_time) as TextView
+        txt_estimate_distance= root.findViewById(R.id.txt_estimate_distance) as TextView
+        root_layout= root.findViewById(R.id.root_layout) as FrameLayout
 
-        txt_rating = root!!.findViewById(R.id.txt_rating) as TextView
-        txt_type_uber=root!!.findViewById(R.id.txt_type_uber) as TextView
-        img_round=root!!.findViewById(R.id.img_round) as ImageView
-        layout_start_uber=root!!.findViewById(R.id.layout_start_uber) as CardView
-        txt_rider_name =root!!.findViewById(R.id.txt_rider_name) as TextView
-        txt_start_uber_estimate_distance=root!!.findViewById(R.id.txt_start_uber_estimate_distance) as TextView
-        txt_start_uber_estimate_time=root!!.findViewById(R.id.txt_start_uber_estimate_time) as TextView
-        img_phone_call=root!!.findViewById(R.id.img_phone_call) as ImageView
-        btn_start_uber=root!!.findViewById(R.id.btn_start_uber) as LoadingButton
+        txt_rating = root.findViewById(R.id.txt_rating) as TextView
+        txt_type_uber= root.findViewById(R.id.txt_type_uber) as TextView
+        img_round= root.findViewById(R.id.img_round) as ImageView
+        layout_start_uber= root.findViewById(R.id.layout_start_uber) as CardView
+        txt_rider_name = root.findViewById(R.id.txt_rider_name) as TextView
+        txt_rider_number=root.findViewById(R.id.txt_rider_number) as TextView
+        txt_start_uber_estimate_distance= root.findViewById(R.id.txt_start_uber_estimate_distance) as TextView
+        txt_start_uber_estimate_time= root.findViewById(R.id.txt_start_uber_estimate_time) as TextView
+        img_phone_call= root.findViewById(R.id.img_phone_call) as ImageView
+        btn_call_driver= root.findViewById(R.id.btn_call_driver) as LoadingButton
+        btn_finish=root.findViewById(R.id.btn_finish) as LoadingButton
+
+        
 
 
         //event
@@ -211,17 +224,23 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             {
                 if (countDownEvent!=null)
                 {
+
                 countDownEvent!!.dispose()
                     chip_decline.visibility=View.GONE
                     layout_accept.visibility=View.GONE
                     mMap.clear()
                     circularProgressBar.progress=0f
-                    UserUtils.sendDeclineRequest(root_layout,activity!!,driverRequestReceived!!.key!!)
+                    UserUtils.sendDeclineRequest(
+                        root_layout,
+                        activity!!,
+                        driverRequestReceived!!.key!!
+                    )
                     driverRequestReceived=null
 
                 }
             }
         }
+
     }
 
     private fun init() {
@@ -229,7 +248,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         iGoogleAPI=RetrofitClient.instance!!.create(IGoogleAPI::class.java)
 
 
-        onlineRef=FirebaseDatabase.getInstance().getReference().child(".info/connected")
+        onlineRef=FirebaseDatabase.getInstance().reference.child(".info/connected")
 
 
 
@@ -243,7 +262,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Snackbar.make(root_layout,getString(R.string.permission_require),Snackbar.LENGTH_LONG).show()
+            Snackbar.make(root_layout, getString(R.string.permission_require), Snackbar.LENGTH_LONG).show()
             return
         }
         buildLocationRequest()
@@ -255,7 +274,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private fun updateLocation() {
         if (fusedLocationProviderClient==null)
         {
-            fusedLocationProviderClient=LocationServices.getFusedLocationProviderClient(requireContext())
+            fusedLocationProviderClient=LocationServices.getFusedLocationProviderClient(
+                requireContext()
+            )
             if (ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -264,10 +285,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                Snackbar.make(root_layout,getString(R.string.permission_require),Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    root_layout,
+                    getString(R.string.permission_require),
+                    Snackbar.LENGTH_LONG
+                ).show()
                 return
             }
-            fusedLocationProviderClient!!.requestLocationUpdates(locationRequest,locationCallback, Looper.myLooper())
+            fusedLocationProviderClient!!.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.myLooper()
+            )
         }
     }
 
@@ -278,8 +307,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 override fun onLocationResult(locationResult: LocationResult?) {
                     super.onLocationResult(locationResult)
 
-                    val newPos=LatLng(locationResult!!.lastLocation.latitude,locationResult!!.lastLocation.longitude)
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos,18f))
+                    val newPos=LatLng(
+                        locationResult!!.lastLocation.latitude,
+                        locationResult.lastLocation.longitude
+                    )
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos, 18f))
 
                     if (!isTripStart) {
                         val geoCoder = Geocoder(requireContext(), Locale.getDefault())
@@ -330,7 +362,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                         if (!TextUtils.isEmpty(tripNumberId))
                         {
                             //update location
-                            val update_data=HashMap<String,Any>()
+                            val update_data=HashMap<String, Any>()
                             update_data["currentLat"]=locationResult.lastLocation.latitude
                             update_data["currentLng"]=locationResult.lastLocation.longitude
 
@@ -338,7 +370,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                 .child(tripNumberId!!)
                                 .updateChildren(update_data)
                                 .addOnFailureListener { e->
-                                    Snackbar.make(mapFragment.requireView(),e.message!!,Snackbar.LENGTH_LONG).show()
+                                    Snackbar.make(
+                                        mapFragment.requireView(),
+                                        e.message!!,
+                                        Snackbar.LENGTH_LONG
+                                    ).show()
                                 }.addOnSuccessListener {  }
                         }
                     }
@@ -353,10 +389,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
       if (locationRequest==null)
       {
           locationRequest= LocationRequest()
-          locationRequest!!.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-          locationRequest!!.setFastestInterval(15000)
+          locationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+          locationRequest!!.fastestInterval = 15000
           locationRequest!!.interval=10000
-          locationRequest!!.setSmallestDisplacement(50f)
+          locationRequest!!.smallestDisplacement = 50f
       }
     }
 
@@ -364,9 +400,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         mMap = googleMap!!
 
         //Request permission
-        Dexter.withContext(requireContext()!!)
+        Dexter.withContext(requireContext())
             .withPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
-            .withListener(object :PermissionListener{
+            .withListener(object : PermissionListener {
                 override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                     //enable button
                     if (ActivityCompat.checkSelfPermission(
@@ -377,30 +413,39 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         ) != PackageManager.PERMISSION_GRANTED
                     ) {
-                        Snackbar.make(root_layout,getString(R.string.permission_require),Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(
+                            root_layout,
+                            getString(R.string.permission_require),
+                            Snackbar.LENGTH_LONG
+                        ).show()
                         return
                     }
-                    mMap.isMyLocationEnabled=true
-                    mMap.uiSettings.isMyLocationButtonEnabled=true
+                    mMap.isMyLocationEnabled = true
+                    mMap.uiSettings.isMyLocationButtonEnabled = true
                     mMap.setOnMyLocationClickListener {
 
                         fusedLocationProviderClient!!.lastLocation
-                            .addOnFailureListener{ e->
-                                makeText(context!!,e.message, LENGTH_SHORT).show()
-                            }.addOnSuccessListener { location->
-                                val userLatLng=LatLng(location.latitude,location.longitude)
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng,18f))
+                            .addOnFailureListener { e ->
+                                makeText(context!!, e.message, LENGTH_SHORT).show()
+                            }.addOnSuccessListener { location ->
+                                val userLatLng = LatLng(location.latitude, location.longitude)
+                                mMap.animateCamera(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        userLatLng,
+                                        18f
+                                    )
+                                )
                             }
                         true
                     }
                     //Layout
-                    val locationButton=(mapFragment.requireView()!!
+                    val locationButton = (mapFragment.requireView()
                         .findViewById<View>("1".toInt())
                         .parent!! as View).findViewById<View>("2".toInt())
-                    val params=locationButton.layoutParams as RelativeLayout.LayoutParams
-                    params.addRule(RelativeLayout.ALIGN_PARENT_TOP,0)
-                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,RelativeLayout.TRUE)
-                    params.bottomMargin=50
+                    val params = locationButton.layoutParams as RelativeLayout.LayoutParams
+                    params.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0)
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
+                    params.bottomMargin = 50
 
                     //location
                     buildLocationRequest()
@@ -411,7 +456,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 }
 
                 override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
-                    makeText(context!!,"Permission "+p0!!.permissionName+" was denied",
+                    makeText(
+                        context!!, "Permission " + p0!!.permissionName + " was denied",
                         LENGTH_SHORT
                     ).show()
                 }
@@ -420,43 +466,51 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     p0: PermissionRequest?,
                     p1: PermissionToken?
                 ) {
-                    TODO("Not yet implemented")
                 }
 
 
             }).check()
 
         try {
-            val success = googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(context,R.raw.uber_maps_style))
+            val success = googleMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    context,
+                    R.raw.uber_maps_style
+                )
+            )
             if (!success)
                 Log.e("EDMT_ERROR", "Style parsing error.")
-        } catch (e:Resources.NotFoundException)
+        } catch (e: Resources.NotFoundException)
         {
             Log.e("EDMT_ERROR", e.message.toString())
         }
 
-        Snackbar.make(mapFragment.requireView(),"Kamu online!",Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(mapFragment.requireView(), "Kamu online!", Snackbar.LENGTH_SHORT).show()
 
     }
 
-    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
-    public fun onDriverRequestReceived(event:DriverRequestReceived)
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onDriverRequestReceived(event: DriverRequestReceived)
     {
         driverRequestReceived=event
         if (ActivityCompat.checkSelfPermission(
-                requireContext()!!,
+                requireContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext()!!,
+                requireContext(),
                 android.Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Snackbar.make(requireView(),getString(R.string.permission_require),Snackbar.LENGTH_LONG).show()
+            Snackbar.make(
+                requireView(),
+                getString(R.string.permission_require),
+                Snackbar.LENGTH_LONG
+            ).show()
             return
         }
         fusedLocationProviderClient!!.lastLocation
-            .addOnFailureListener{e->
-                Snackbar.make(requireView(),e.message!!,Snackbar.LENGTH_LONG).show()
+            .addOnFailureListener{ e->
+                Snackbar.make(requireView(), e.message!!, Snackbar.LENGTH_LONG).show()
             }
             .addOnSuccessListener { location->
                 compositeDisposable.add(iGoogleAPI.getDirection(
@@ -467,7 +521,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                         .append(",")
                         .append(location.longitude)
                         .toString(),
-                    event.pickupLocation,
+                    event.destinationLocation,
                     getString(R.string.google_api_key)
                 )
                 !!.subscribeOn(Schedulers.io())
@@ -477,7 +531,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                         try {
 
                             val jsonObject = JSONObject(returnResult)
-                            val jsonArray = jsonObject.getJSONArray("routes");
+                            val jsonArray = jsonObject.getJSONArray("routes")
                             for (i in 0 until jsonArray.length()) {
                                 val route = jsonArray.getJSONObject(i)
                                 val poly = route.getJSONObject("overview_polyline")
@@ -510,17 +564,19 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                 val points = greyPolyline!!.points
                                 val percentValue = value.animatedValue.toString().toInt()
                                 val size = points.size
-                                val newpoints = (size * (percentValue/100.0f)).toInt()
+                                val newpoints = (size * (percentValue / 100.0f)).toInt()
                                 val p = points.subList(0, newpoints)
-                                blackPolyLine!!.points=(p)
+                                blackPolyLine!!.points = (p)
 
                             }
 
                             valueAnimator.start()
 
-                            val origin=LatLng(location.latitude,location.longitude)
-                            val destination=LatLng(event.pickupLocation!!.split(",")[0].toDouble(),
-                            event.pickupLocation!!.split(",")[1].toDouble())
+                            val origin = LatLng(location.latitude, location.longitude)
+                            val destination = LatLng(
+                                event.pickupLocation!!.split(",")[0].toDouble(),
+                                event.pickupLocation!!.split(",")[1].toDouble()
+                            )
 
                             val latLngBound = LatLngBounds.Builder().include(origin)
                                 .include(destination)
@@ -538,29 +594,39 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             val distanceEstimate = legsObject.getJSONObject("distance")
                             val distance = distanceEstimate.getString("text")
 
-                            txt_estimate_time.setText(duration)
-                            txt_estimate_distance.setText(distance)
+                            txt_estimate_time.text = duration
+                            txt_estimate_distance.text = distance
 
 
-                            mMap.addMarker(MarkerOptions().position(destination).icon(BitmapDescriptorFactory.defaultMarker())
-                                .title("Pickup Location"))
 
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBound, 160))
+                            mMap.addMarker(
+                                MarkerOptions().position(destination).icon(
+                                    BitmapDescriptorFactory.defaultMarker()
+                                )
+                                    .title("Pickup Location")
+                            )
+
+                            mMap.moveCamera(
+                                CameraUpdateFactory.newLatLngBounds(
+                                    latLngBound,
+                                    160
+                                )
+                            )
                             mMap.moveCamera(CameraUpdateFactory.zoomTo(mMap.cameraPosition!!.zoom - 1))
 
                             //display layout
-                            chip_decline.visibility=View.VISIBLE
-                            layout_accept.visibility=View.VISIBLE
+                            chip_decline.visibility = View.VISIBLE
+                            layout_accept.visibility = View.VISIBLE
 
                             //countdown
-                            countDownEvent= Observable.interval(100,TimeUnit.MILLISECONDS)
+                            countDownEvent = Observable.interval(100, TimeUnit.MILLISECONDS)
                                 .observeOn(AndroidSchedulers.mainThread())
-                                .doOnNext { x->
-                                    circularProgressBar.progress +=1f
+                                .doOnNext { x ->
+                                    circularProgressBar.progress += 1f
                                 }
-                                .takeUntil{aLong -> aLong=="100".toLong()} //10sec
-                                .doOnComplete{
-                                    createTripPlan(event,duration,distance)
+                                .takeUntil { aLong -> aLong == "100".toLong() } //10sec
+                                .doOnComplete {
+                                    createTripPlan(event, duration, distance)
                                 }.subscribe()
 
                         } catch (e: java.lang.Exception) {
@@ -571,23 +637,24 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
     }
 
+
+
     private fun createTripPlan(event: DriverRequestReceived, duration: String, distance: String) {
         setLayoutProcess(true)
         //sync server time with device
         FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset")
-            .addListenerForSingleValueEvent(object:ValueEventListener{
+            .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val timeOffset=snapshot.getValue(Long::class.java)
+                    val timeOffset = snapshot.getValue(Long::class.java)
 
                     //load rider information
                     FirebaseDatabase.getInstance()
                         .getReference(Comon.RIDER_INFO)
-                        .child(event!!.key!!)
-                        .addListenerForSingleValueEvent(object:ValueEventListener{
+                        .child(event.key!!)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
-                                if (snapshot.exists())
-                                {
-                                    var riderModel=snapshot.getValue(RiderModel::class.java)
+                                if (snapshot.exists()) {
+                                    var riderModel = snapshot.getValue(RiderModel::class.java)
 
 
                                     //get location
@@ -600,7 +667,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                         ) != PackageManager.PERMISSION_GRANTED
                                     ) {
                                         Snackbar.make(
-                                            mapFragment.requireView()!!,
+                                            mapFragment.requireView(),
                                             requireContext().getString(R.string.permission_require),
                                             Snackbar.LENGTH_LONG
                                         ).show()
@@ -608,49 +675,125 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                     }
 
                                     fusedLocationProviderClient!!.lastLocation
-                                        .addOnFailureListener{e->
-                                            Snackbar.make(mapFragment.requireView()!!,e.message!!,Snackbar.LENGTH_LONG).show()
+                                        .addOnFailureListener { e ->
+                                            Snackbar.make(
+                                                mapFragment.requireView(),
+                                                e.message!!,
+                                                Snackbar.LENGTH_LONG
+                                            ).show()
                                         }
-                                        .addOnSuccessListener { location->
+                                        .addOnSuccessListener { location ->
                                             //create trip planner
-                                            val tripPlanModel= TripPlanModel()
-                                            tripPlanModel.driver=FirebaseAuth.getInstance().currentUser!!.uid
-                                            tripPlanModel.rider=event!!.key
-                                            tripPlanModel.driverInfoModel=Comon.currentUser
-                                            tripPlanModel.riderModel=riderModel
-                                            tripPlanModel.origin=event.pickupLocation
-                                            tripPlanModel.originString=event.pickupLocationString
-                                            tripPlanModel.destination=event.destinationLocation
-                                            tripPlanModel.destinationString=event.destinationLocationString
-                                            tripPlanModel.distancePickup=distance
-                                            tripPlanModel.durationPickup=duration
-                                            tripPlanModel.currentLat=location.latitude
-                                            tripPlanModel.currentLng=location.longitude
+                                            val tripPlanModel = TripPlanModel()
+                                            tripPlanModel.driver =FirebaseAuth.getInstance().currentUser!!.uid
+                                            tripPlanModel.rider = event.key
+                                            tripPlanModel.driverInfoModel = Comon.currentUser
+                                            tripPlanModel.riderModel = riderModel
+                                            tripPlanModel.origin = event.pickupLocation
+                                            tripPlanModel.originString = event.pickupLocationString
+                                            tripPlanModel.destination = event.destinationLocation
+                                            tripPlanModel.destinationString = event.destinationLocationString
+                                            tripPlanModel.distancePickup = distance
+                                            tripPlanModel.durationPickup = duration
+                                            tripPlanModel.currentLat = location.latitude
+                                            tripPlanModel.currentLng = location.longitude
 
-                                            tripNumberId=Comon.createUniqueTripIdNumber(timeOffset)
+
+                                            tripNumberId =Comon.createUniqueTripIdNumber(timeOffset)
+
 
                                             //submit
                                             FirebaseDatabase.getInstance().getReference(Comon.TRIP)
                                                 .child(tripNumberId!!)
                                                 .setValue(tripPlanModel)
-                                                .addOnFailureListener{e->
-                                                    Snackbar.make(mapFragment.requireView()!!,e!!.message!!,Snackbar.LENGTH_LONG).show()
+                                                .addOnFailureListener { e ->
+                                                    Snackbar.make(
+                                                        mapFragment.requireView(),
+                                                        e.message!!,
+                                                        Snackbar.LENGTH_LONG
+                                                    ).show()
                                                 }
                                                 .addOnSuccessListener { aVoid ->
-                                                    txt_rider_name.setText(riderModel!!.firstName)
-                                                    txt_start_uber_estimate_distance.setText(distance)
-                                                    txt_start_uber_estimate_time.setText(duration)
+                                                    txt_rider_name.text =riderModel!!.firstName +" "+riderModel!!.lastName
+                                                    txt_rider_number.text = riderModel.phoneNumber
+                                                    phoneNumber = riderModel.phoneNumber
+                                                    txt_start_uber_estimate_distance.text = distance
+                                                    txt_start_uber_estimate_time.text = duration
 
-                                                    setOfflineModeForDriver(event,duration,distance)
+                                                    btn_call_driver.setOnClickListener {
+                                                        checkPermission()
+                                                    }
+                                                    btn_finish.setOnClickListener {
+                                                        UserUtils.sendDone(
+                                                            root_layout,
+                                                            activity!!,
+                                                            driverRequestReceived!!.key!!
+                                                        )
+                                                        driverRequestReceived=null
+                                                        val tripPlanModel = TripPlanModel()
+
+                                                        tripPlanModel.driver =FirebaseAuth.getInstance().currentUser!!.uid
+                                                        tripPlanModel.rider = event.key
+                                                        tripPlanModel.driverInfoModel = Comon.currentUser
+                                                        tripPlanModel.riderModel = riderModel
+                                                        tripPlanModel.origin = event.pickupLocation
+                                                        tripPlanModel.originString = event.pickupLocationString
+                                                        tripPlanModel.destination = event.destinationLocation
+                                                        tripPlanModel.destinationString =
+                                                            event.destinationLocationString
+                                                        tripPlanModel.distancePickup = distance
+                                                        tripPlanModel.durationPickup = duration
+                                                        tripPlanModel.currentLat = location.latitude
+                                                        tripPlanModel.currentLng = location.longitude
+
+                                                        tripPlanModel.isDone=true
+                                                        //submit
+                                                        FirebaseDatabase.getInstance().getReference(Comon.TRIP)
+                                                            .child(tripNumberId!!)
+                                                            .setValue(tripPlanModel)
+                                                            .addOnFailureListener { e ->
+                                                                Snackbar.make(
+                                                                    mapFragment.requireView(),
+                                                                    e.message!!,
+                                                                    Snackbar.LENGTH_LONG
+                                                                ).show()
+                                                            }
+                                                            .addOnSuccessListener { aVoid ->
+
+                                                        layout_start_uber.visibility=View.GONE
+
+                                                        isTripStart=true
+                                                        chip_decline.visibility=View.GONE
+                                                        mMap.clear()
+                                                            }
+                                                    }
+
+
+
+
+
+                                                    setOfflineModeForDriver(
+                                                        event,
+                                                        duration,
+                                                        distance
+                                                    )
                                                 }
                                         }
-                                }
-                                else
-                                    Snackbar.make(mapFragment.requireView()!!,requireContext().getString(R.string.rider_not_found)+" "+event!!.key!!,Snackbar.LENGTH_LONG).show()
+
+                                } else
+                                    Snackbar.make(
+                                        mapFragment.requireView(), requireContext().getString(
+                                            R.string.rider_not_found
+                                        ) + " " + event.key!!, Snackbar.LENGTH_LONG
+                                    ).show()
                             }
 
                             override fun onCancelled(error: DatabaseError) {
-                                Snackbar.make(mapFragment.requireView()!!,error.message,Snackbar.LENGTH_LONG).show()
+                                Snackbar.make(
+                                    mapFragment.requireView(),
+                                    error.message,
+                                    Snackbar.LENGTH_LONG
+                                ).show()
                             }
 
                         })
@@ -658,18 +801,74 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Snackbar.make(mapFragment.requireView()!!,error.message,Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(mapFragment.requireView(), error.message, Snackbar.LENGTH_LONG)
+                        .show()
                 }
 
             })
     }
+    fun checkPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.CALL_PHONE)
+            != PackageManager.PERMISSION_GRANTED) {
 
-    private fun setOfflineModeForDriver(event: DriverRequestReceived, duration: String, distance: String) {
+            // Permission is not granted
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
+                    Manifest.permission.CALL_PHONE)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(requireActivity(),
+                    arrayOf(Manifest.permission.CALL_PHONE),
+                    42)
+            }
+        } else {
+            // Permission has already been granted
+            callPhone()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == 42) {
+            // If request is cancelled, the result arrays are empty.
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                // permission was granted, yay!
+                callPhone()
+            } else {
+                // permission denied, boo! Disable the
+                // functionality
+            }
+            return
+        }
+    }
+
+    fun callPhone(){
+        val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber"))
+        startActivity(intent)
+    }
+
+    private fun setOfflineModeForDriver(
+        event: DriverRequestReceived,
+        duration: String,
+        distance: String
+    ) {
+
+        UserUtils.sendAcceptRequestToRider(
+            mapFragment.view,
+            requireContext(),
+            event.key!!,
+            tripNumberId
+        )
         //go to offline
         if (currentUserRef != null) currentUserRef!!.removeValue()
 
         setLayoutProcess(false)
         layout_accept.visibility=View.GONE
+        chip_decline.visibility=View.GONE
         layout_start_uber.visibility=View.VISIBLE
 
         isTripStart=true
@@ -679,22 +878,32 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         var color=-1
         if (process)
         {
-            color = ContextCompat.getColor(requireContext(),R.color.dark_gray)
+            color = ContextCompat.getColor(requireContext(), R.color.dark_gray)
             circularProgressBar.indeterminateMode=true
-            txt_rating.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_baseline_star_24_darkgray,0)
+            txt_rating.setCompoundDrawablesWithIntrinsicBounds(
+                0,
+                0,
+                R.drawable.ic_baseline_star_24_darkgray,
+                0
+            )
         }
         else{
-            color = ContextCompat.getColor(requireContext(),android.R.color.white)
+            color = ContextCompat.getColor(requireContext(), android.R.color.white)
             circularProgressBar.indeterminateMode=false
             circularProgressBar.progress=0f
-            txt_rating.setCompoundDrawablesWithIntrinsicBounds(0,0,R.drawable.ic_baseline_star_24,0)
+            txt_rating.setCompoundDrawablesWithIntrinsicBounds(
+                0,
+                0,
+                R.drawable.ic_baseline_star_24,
+                0
+            )
         }
 
         txt_estimate_time.setTextColor(color)
         txt_estimate_distance.setTextColor(color)
         txt_rating.setTextColor(color)
         txt_type_uber.setTextColor(color)
-        ImageViewCompat.setImageTintList(img_round,ColorStateList.valueOf(color))
+        ImageViewCompat.setImageTintList(img_round, ColorStateList.valueOf(color))
 
     }
 

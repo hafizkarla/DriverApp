@@ -12,8 +12,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MapsActivity"/>
-
+        tools:context=".MapsActivity" />
 
     <com.google.android.material.chip.Chip
         android:theme="@style/Theme.MaterialComponents.Light"
@@ -24,7 +23,7 @@
         android:text="@string/decline"
         android:textColor="@color/lightGray"
         android:visibility="gone"
-        app:chipBackgroundColor="@color/space"
+        app:chipBackgroundColor="@color/blackpos"
         app:chipIcon="@drawable/ic_baseline_clear_24"
         app:chipIconTint="@color/lightGray"/>
 
@@ -34,7 +33,7 @@
         android:id="@+id/layout_accept"
         android:layout_gravity="bottom"
         android:layout_margin="8dp"
-        app:cardBackgroundColor="@color/space"
+        app:cardBackgroundColor="@color/blackpos"
         app:cardCornerRadius="8dp"
         android:visibility="gone">
         <LinearLayout
@@ -58,6 +57,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginRight="8dp"
                     android:textSize="18dp"
+                    android:visibility="gone"
                     android:text="Driver"/>
                 <RelativeLayout
                     android:layout_width="wrap_content"
@@ -93,6 +93,7 @@
                     android:id="@+id/txt_rating"
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="8dp"
+                    android:visibility="gone"
                     android:text="4.24"
                     android:textColor="@color/lightGray"
                     android:textSize="18dp"
@@ -146,10 +147,7 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_baseline_keyboard_arrow_down_24"/>
+
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -176,11 +174,6 @@
                     android:textColor="@color/space"
                     android:layout_centerVertical="true"
                     android:layout_toRightOf="@+id/img_start_uber"/>
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:src="@drawable/ic_baseline_format_list_bulleted_24"/>
             </RelativeLayout>
             <View
                 android:layout_marginTop="16dp"
@@ -188,6 +181,47 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/dark_gray"/>
+
+            <LinearLayout
+                android:id="@+id/layout_notify_rider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/txt_notify_rider"
+                    android:text="05:00"
+                    android:textSize="18sp"
+                    android:gravity="center_horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/open_sans_bold"/>
+                <ProgressBar
+                    android:id="@+id/progress_notify"
+                    android:min="0"
+                    android:max="300"
+                    android:indeterminate="false"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+
+            </LinearLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/txt_rider_name"
+                    android:text="Deen Snuts"
+                    android:textColor="@color/space"
+                    android:textSize="22sp"
+                    android:layout_centerInParent="true"
+                    android:fontFamily="@font/open_sans_bold"
+                    />
+            </RelativeLayout>
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -200,31 +234,51 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/txt_rider_name"
-                    android:text="Deen Snuts"
+                    android:id="@+id/txt_rider_number"
+                    android:text="0812577884"
                     android:textColor="@color/space"
-                    android:textSize="22sp"
+                    android:textSize="16sp"
                     android:layout_centerInParent="true"
-                    android:fontFamily="@font/open_sans_bold"
+                    android:fontFamily="@font/open_sans_light"
                     />
-                <ImageView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:id="@+id/img_three_dot"
-                    android:layout_alignParentRight="true"
-                    android:src="@drawable/ic_baseline_more_vert_24"/>
             </RelativeLayout>
+
             <com.kusu.library.LoadingButton
-                android:id="@+id/btn_start_uber"
+                android:id="@+id/btn_call_driver"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:text="@string/start_uber"
+                android:text="Call"
+                android:textColor="@color/lightGray"
+                app:lb_buttonColor="@color/colorPrimary"
+                app:lb_isCircular="false" />
+            <com.kusu.library.LoadingButton
+                android:id="@+id/btn_start"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:fontFamily="@font/open_sans_bold"
+                android:text="Start"
+                android:textColor="@color/lightGray"
+                app:lb_buttonColor="@color/colorPrimary"
+                app:lb_isCircular="false" />
+            <com.kusu.library.LoadingButton
+                android:id="@+id/btn_finish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:fontFamily="@font/open_sans_bold"
+                android:text="Finish"
+                android:textColor="@color/lightGray"
                 app:lb_buttonColor="@color/startuber"
-                app:lb_isCircular="false"
-                android:textColor="@color/lightGray"/>
+                app:lb_isCircular="false" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
