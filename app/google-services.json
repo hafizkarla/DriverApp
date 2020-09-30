@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "494419129982-enosd447t12290is813rmmmotblcac3a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kinikumuda.multikurir",
+            "certificate_hash": "b4de0a2c6a5e1b06f25d6004c30a784817169d83"
+          }
+        },
+        {
+          "client_id": "494419129982-3dhohsqcvdiuhtdfcadr1epl2emeu1nl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kinikumuda.multikurir",
+            "certificate_hash": "d14a959c88ea4e5615a7d8c0d5ae6615c350b02e"
+          }
+        },
+        {
           "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -43,6 +59,134 @@
         "mobilesdk_app_id": "1:494419129982:android:ddd23c5a0cd3227f3c4a2f",
         "android_client_info": {
           "package_name": "com.kinikumuda.multikurir_driverapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOWTSyX59cqGrAgJKO1tzGE4rf2flw4Og"
+        },
+        {
+          "current_key": "AIzaSyA8-4j8h0sJHIc-tsusl4ct5W6yuDGmL_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494419129982:android:259e46f21600a0963c4a2f",
+        "android_client_info": {
+          "package_name": "com.kinikumuda.multikurir_riderapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOWTSyX59cqGrAgJKO1tzGE4rf2flw4Og"
+        },
+        {
+          "current_key": "AIzaSyA8-4j8h0sJHIc-tsusl4ct5W6yuDGmL_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494419129982:android:a13858b769b77d8a3c4a2f",
+        "android_client_info": {
+          "package_name": "com.kinikumuda.multikurir_user"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOWTSyX59cqGrAgJKO1tzGE4rf2flw4Og"
+        },
+        {
+          "current_key": "AIzaSyA8-4j8h0sJHIc-tsusl4ct5W6yuDGmL_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494419129982:android:2a105580672d77073c4a2f",
+        "android_client_info": {
+          "package_name": "com.kinikumuda.riderapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOWTSyX59cqGrAgJKO1tzGE4rf2flw4Og"
+        },
+        {
+          "current_key": "AIzaSyA8-4j8h0sJHIc-tsusl4ct5W6yuDGmL_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "494419129982-0m8c4f8dnlo87b05d24118viadlj04cj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494419129982:android:53030f5cd33155943c4a2f",
+        "android_client_info": {
+          "package_name": "com.onedev.balanjaonline"
         }
       },
       "oauth_client": [

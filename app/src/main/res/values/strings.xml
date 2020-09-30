@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Multi Kurir - DriverApp</string>
+    <string name="app_name">GoPos Driver</string>
     <string name="continue_text">Continue</string>
     <string name="register_text">Let\'s start with creating your account</string>
     <string name="first_name">First Name</string>

@@ -38,6 +38,7 @@
             android:drawableStart="@drawable/ic_baseline_phone_24"
             android:drawableTint="@color/lightGray"/>
         <Button
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/btn_google_sign_in"
