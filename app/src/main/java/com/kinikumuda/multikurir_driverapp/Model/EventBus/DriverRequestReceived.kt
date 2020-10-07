@@ -6,4 +6,5 @@ class DriverRequestReceived{
     var pickupLocationString:String?=null
     var destinationLocation:String?=null
     var destinationLocationString:String?=null
+    var typeOrder:String?=null
 }

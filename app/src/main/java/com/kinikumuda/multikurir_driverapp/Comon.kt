@@ -122,4 +122,7 @@ object Comon {
     val DESTINATION_LOCATION: String="DestinationLocation"
     val DESTINATION_LOCATION_STRING: String="DestinationLocationString"
     val PICKUP_LOCATION_STRING: String="PickupLocationString"
+
+    val TYPE_ORDER:String="TypeOrder"
+    val INPUT_ORDER: String=""
 }

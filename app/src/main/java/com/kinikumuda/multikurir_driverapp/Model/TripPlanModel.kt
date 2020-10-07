@@ -16,6 +16,7 @@ class TripPlanModel {
     var currentLat:Double=-1.0
     var currentLng:Double=-1.0
     var isDone:Boolean=false
+    var typeOrder:String?=null
     var isCancel=false
 
 }

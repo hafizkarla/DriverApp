@@ -29,6 +29,7 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
                 driverRequestReceived.pickupLocationString=data[Comon.PICKUP_LOCATION_STRING]
                 driverRequestReceived.destinationLocation=data[Comon.DESTINATION_LOCATION]
                 driverRequestReceived.destinationLocationString=data[Comon.DESTINATION_LOCATION_STRING]
+                driverRequestReceived.typeOrder=data[Comon.TYPE_ORDER]
 
                 EventBus.getDefault().postSticky(driverRequestReceived)
             }

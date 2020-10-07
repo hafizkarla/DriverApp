@@ -47,6 +47,7 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.kinikumuda.multikurir_driverapp.Comon
 import com.kinikumuda.multikurir_driverapp.DriverHomeActivity
+import com.kinikumuda.multikurir_driverapp.Model.DriverInfoModel
 import com.kinikumuda.multikurir_driverapp.Model.EventBus.DriverRequestReceived
 import com.kinikumuda.multikurir_driverapp.Model.EventBus.OnDriverStart
 import com.kinikumuda.multikurir_driverapp.Model.RiderModel
@@ -81,6 +82,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var layout_accept: CardView
     private lateinit var circularProgressBar:CircularProgressBar
     private lateinit var txt_estimate_time:TextView
+    private lateinit var type_order:TextView
     private lateinit var txt_estimate_distance:TextView
     private lateinit var root_layout:FrameLayout
 
@@ -88,6 +90,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var txt_type_uber:TextView
     private lateinit var img_round:ImageView
     private lateinit var layout_start_uber:CardView
+    private lateinit var layout_info_bojek:CardView
     private lateinit var txt_rider_name:TextView
     private lateinit var txt_rider_number:TextView
     private lateinit var txt_start_uber_estimate_distance:TextView
@@ -95,6 +98,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var img_phone_call:ImageView
     private lateinit var btn_call_driver:LoadingButton
     private lateinit var btn_finish:LoadingButton
+    private lateinit var txt_name:TextView
+    private lateinit var txt_phone:TextView
+    private lateinit var txt_motor_type:TextView
+    private lateinit var txt_vehicle_number:TextView
 
     private var isTripStart=false
     private var onlineSystemAlreadyRegister=false
@@ -130,6 +137,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     //decline
     private var driverRequestReceived:DriverRequestReceived?=null
     private var countDownEvent:Disposable?=null
+
+
 
     private val onlineValueEventListener=object:ValueEventListener{
         override fun onDataChange(p0: DataSnapshot) {
@@ -200,6 +209,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         layout_accept= root.findViewById(R.id.layout_accept) as CardView
         circularProgressBar= root.findViewById(R.id.circularProgressBar) as CircularProgressBar
         txt_estimate_time= root.findViewById(R.id.txt_estimate_time) as TextView
+        type_order=root.findViewById(R.id.type_order) as TextView
         txt_estimate_distance= root.findViewById(R.id.txt_estimate_distance) as TextView
         root_layout= root.findViewById(R.id.root_layout) as FrameLayout
 
@@ -207,6 +217,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         txt_type_uber= root.findViewById(R.id.txt_type_uber) as TextView
         img_round= root.findViewById(R.id.img_round) as ImageView
         layout_start_uber= root.findViewById(R.id.layout_start_uber) as CardView
+        layout_info_bojek=root.findViewById(R.id.layout_info_bojek) as CardView
         txt_rider_name = root.findViewById(R.id.txt_rider_name) as TextView
         txt_rider_number=root.findViewById(R.id.txt_rider_number) as TextView
         txt_start_uber_estimate_distance= root.findViewById(R.id.txt_start_uber_estimate_distance) as TextView
@@ -215,8 +226,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         btn_call_driver= root.findViewById(R.id.btn_call_driver) as LoadingButton
         btn_finish=root.findViewById(R.id.btn_finish) as LoadingButton
 
-        
+        txt_name=root.findViewById(R.id.txt_name) as TextView
+        txt_phone=root.findViewById(R.id.txt_phone) as TextView
+        txt_motor_type=root.findViewById(R.id.txt_motor_type) as TextView
+        txt_vehicle_number=root.findViewById(R.id.txt_vehicle_number) as TextView
 
+        txt_name.text =Comon.currentUser!!.firstName+" "+Comon.currentUser!!.lastName
+        txt_phone.text=Comon.currentUser!!.phoneNumber
+        txt_motor_type.setText(Comon.currentUser!!.motorType)
+        txt_vehicle_number.setText(Comon.currentUser!!.vehicleLicenseNumber)
 
         //event
         chip_decline.setOnClickListener {
@@ -596,6 +614,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                             txt_estimate_time.text = duration
                             txt_estimate_distance.text = distance
+                            type_order.text=event.typeOrder
 
 
 
@@ -617,6 +636,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             //display layout
                             chip_decline.visibility = View.VISIBLE
                             layout_accept.visibility = View.VISIBLE
+                            layout_info_bojek.visibility=View.GONE
 
                             //countdown
                             countDownEvent = Observable.interval(100, TimeUnit.MILLISECONDS)
@@ -697,6 +717,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                             tripPlanModel.durationPickup = duration
                                             tripPlanModel.currentLat = location.latitude
                                             tripPlanModel.currentLng = location.longitude
+                                            tripPlanModel.typeOrder=event.typeOrder
+
 
 
                                             tripNumberId =Comon.createUniqueTripIdNumber(timeOffset)
@@ -739,12 +761,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                         tripPlanModel.origin = event.pickupLocation
                                                         tripPlanModel.originString = event.pickupLocationString
                                                         tripPlanModel.destination = event.destinationLocation
-                                                        tripPlanModel.destinationString =
-                                                            event.destinationLocationString
+                                                        tripPlanModel.destinationString =event.destinationLocationString
                                                         tripPlanModel.distancePickup = distance
                                                         tripPlanModel.durationPickup = duration
                                                         tripPlanModel.currentLat = location.latitude
                                                         tripPlanModel.currentLng = location.longitude
+                                                        tripPlanModel.typeOrder=event.typeOrder
 
                                                         tripPlanModel.isDone=true
                                                         //submit
@@ -761,6 +783,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                             .addOnSuccessListener { aVoid ->
 
                                                         layout_start_uber.visibility=View.GONE
+                                                                layout_info_bojek.visibility=View.VISIBLE
+
+
 
                                                         isTripStart=true
                                                         chip_decline.visibility=View.GONE
@@ -870,6 +895,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         layout_accept.visibility=View.GONE
         chip_decline.visibility=View.GONE
         layout_start_uber.visibility=View.VISIBLE
+        layout_info_bojek.visibility=View.GONE
 
         isTripStart=true
     }
@@ -901,6 +927,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         txt_estimate_time.setTextColor(color)
         txt_estimate_distance.setTextColor(color)
+        type_order.setTextColor(color)
         txt_rating.setTextColor(color)
         txt_type_uber.setTextColor(color)
         ImageViewCompat.setImageTintList(img_round, ColorStateList.valueOf(color))
