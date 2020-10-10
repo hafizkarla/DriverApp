@@ -10,4 +10,11 @@ class DriverInfoModel {
     var motorType:String=""
     var vehicleLicenseNumber:String=""
     var driveLicense:String=""
+    var agama:String=""
+    var status:String=""
+    var tanggalLahir:String=""
+    var asal:String=""
+    var address:String=""
+    var jenisKelamin:String=""
+    var verification:Boolean=false
 }

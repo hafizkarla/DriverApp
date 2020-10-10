@@ -44,7 +44,7 @@
         <activity
             android:name=".DriverHomeActivity"
             android:label="@string/title_activity_driver_home"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
         <activity
             android:name=".SplashScreenActivity"
             android:theme="@style/SplashTheme">

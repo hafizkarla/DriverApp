@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">GoPos Driver</string>
     <string name="continue_text">Continue</string>
-    <string name="register_text">Let\'s start with creating your account</string>
+    <string name="register_text">Register Driver</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
     <string name="phone_number">Phone Number</string>
@@ -34,4 +34,9 @@
     <string name="vehicle_license_number">Vehicle License Number</string>
     <string name="done_request_failed">Request done failed</string>
     <string name="done_success">Your trip has been done!</string>
+    <string name="address">Address</string>
+    <string name="agama">Religion</string>
+    <string name="status">Status</string>
+    <string name="asal">From</string>
+    <string name="jenis_kelamin">Gender</string>
 </resources>
