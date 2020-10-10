@@ -47,6 +47,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "494419129982-1ujv0203br543h1h2gggj860b84gmeop.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kinikumuda.multikurir_driverapp",
+            "certificate_hash": "e9670e9a22622fa24d3dbf0439305062afd71306"
+          }
+        },
+        {
           "client_id": "494419129982-ec64ri623l5hms4qd57j2s31mt8vfmne.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

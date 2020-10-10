@@ -39,4 +39,11 @@
     <string name="status">Status</string>
     <string name="asal">From</string>
     <string name="jenis_kelamin">Gender</string>
+
+    <string name="chat">Chat</string>
+    <string name="penghasilan">Penghasilan saya</string>
+    <string name="penilaian">Lihat penilaian pelanggan</string>
+    <string name="undang">Undang teman</string>
+    <string name="bantuan">Pusat bantuan</string>
+    <string name="kebijakan">Kebijakan dan privasi</string>
 </resources>

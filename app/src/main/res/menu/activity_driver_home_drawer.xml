@@ -8,6 +8,30 @@
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_baseline_home_24"
             android:title="@string/menu_home" />
+        <item
+            android:id="@+id/nav_chat"
+            android:icon="@drawable/ic_baseline_chat_24"
+            android:title="@string/chat" />
+        <item
+            android:id="@+id/nav_penghasilan"
+            android:icon="@drawable/ic_baseline_money_24"
+            android:title="@string/penghasilan" />
+        <item
+            android:id="@+id/nav_penilaian"
+            android:icon="@drawable/ic_baseline_star_24"
+            android:title="@string/penilaian" />
+        <item
+            android:id="@+id/nav_undang"
+            android:icon="@drawable/ic_baseline_insert_invitation_24"
+            android:title="@string/undang" />
+        <item
+            android:id="@+id/nav_bantuan"
+            android:icon="@drawable/ic_baseline_help_outline_24"
+            android:title="@string/bantuan" />
+        <item
+            android:id="@+id/nav_kebijakan"
+            android:icon="@drawable/ic_baseline_error_outline_24"
+            android:title="@string/kebijakan" />
 
         <item
             android:id="@+id/nav_sign_out"
