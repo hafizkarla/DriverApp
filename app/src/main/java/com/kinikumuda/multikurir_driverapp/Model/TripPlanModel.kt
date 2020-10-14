@@ -18,5 +18,6 @@ class TripPlanModel {
     var isDone:Boolean=false
     var typeOrder:String?=null
     var isCancel=false
+    var price:String?=null
 
 }

@@ -2,6 +2,7 @@ package com.kinikumuda.multikurir_driverapp.ui.home
 
 import android.Manifest
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -71,10 +72,10 @@ import org.jetbrains.anko.find
 import org.json.JSONObject
 import org.w3c.dom.Text
 import java.io.IOException
+import java.text.NumberFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
-
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
     //views
@@ -95,6 +96,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var txt_rider_number:TextView
     private lateinit var txt_start_uber_estimate_distance:TextView
     private lateinit var txt_start_uber_estimate_time:TextView
+    private lateinit var txt_start_uber_estimate_price:TextView
+    private lateinit var txt_estimate_price:TextView
     private lateinit var img_phone_call:ImageView
     private lateinit var btn_call_driver:LoadingButton
     private lateinit var btn_finish:LoadingButton
@@ -138,7 +141,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var driverRequestReceived:DriverRequestReceived?=null
     private var countDownEvent:Disposable?=null
 
-
+    //format rupiah
+    val localeId = Locale("in", "ID")
+    val formatRupiah = NumberFormat.getCurrencyInstance(localeId)
 
     private val onlineValueEventListener=object:ValueEventListener{
         override fun onDataChange(p0: DataSnapshot) {
@@ -211,6 +216,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         txt_estimate_time= root.findViewById(R.id.txt_estimate_time) as TextView
         type_order=root.findViewById(R.id.type_order) as TextView
         txt_estimate_distance= root.findViewById(R.id.txt_estimate_distance) as TextView
+        txt_estimate_price=root.findViewById(R.id.txt_estimate_price) as TextView
         root_layout= root.findViewById(R.id.root_layout) as FrameLayout
 
         txt_rating = root.findViewById(R.id.txt_rating) as TextView
@@ -220,6 +226,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         layout_info_bojek=root.findViewById(R.id.layout_info_bojek) as CardView
         txt_rider_name = root.findViewById(R.id.txt_rider_name) as TextView
         txt_rider_number=root.findViewById(R.id.txt_rider_number) as TextView
+        txt_start_uber_estimate_price=root.findViewById(R.id.txt_start_uber_estimate_price) as TextView
         txt_start_uber_estimate_distance= root.findViewById(R.id.txt_start_uber_estimate_distance) as TextView
         txt_start_uber_estimate_time= root.findViewById(R.id.txt_start_uber_estimate_time) as TextView
         img_phone_call= root.findViewById(R.id.img_phone_call) as ImageView
@@ -317,7 +324,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             )
         }
     }
-
     private fun buildLocationCallback() {
         if (locationCallback==null)
         {
@@ -506,7 +512,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         Snackbar.make(mapFragment.requireView(), "Kamu online!", Snackbar.LENGTH_SHORT).show()
 
     }
-
+    @SuppressLint("SetTextI18n")
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onDriverRequestReceived(event: DriverRequestReceived)
     {
@@ -616,6 +622,28 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             txt_estimate_distance.text = distance
                             type_order.text=event.typeOrder
 
+                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
+                                txt_estimate_price.text=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
+                            }
+                            else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
+                                txt_estimate_price.text="Rp. 35.000"
+                            }
+                            else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
+                                txt_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                            }
+                            else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
+                                txt_estimate_price.text="Rp. 9.000"
+                            }
+                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
+                                txt_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                            }
+                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
+                                txt_estimate_price.text="Rp. 9.000"
+                            }
+                            else{
+                                Toast.makeText(requireContext(),"Error saat memuat harga",Toast.LENGTH_LONG).show()
+                            }
+
 
 
                             mMap.addMarker(
@@ -719,6 +747,25 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                             tripPlanModel.currentLng = location.longitude
                                             tripPlanModel.typeOrder=event.typeOrder
 
+                                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
+                                                tripPlanModel.price=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
+                                            }
+                                            else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
+                                                tripPlanModel.price="Rp. 35.000"
+                                            }
+                                            else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
+                                                tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                                            }
+                                            else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
+                                                tripPlanModel.price="Rp. 9.000"
+                                            }
+                                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
+                                                tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                                            }
+                                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
+                                                tripPlanModel.price="Rp. 9.000"
+                                            }
+
 
 
                                             tripNumberId =Comon.createUniqueTripIdNumber(timeOffset)
@@ -741,6 +788,28 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                     phoneNumber = riderModel.phoneNumber
                                                     txt_start_uber_estimate_distance.text = distance
                                                     txt_start_uber_estimate_time.text = duration
+
+                                                    if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
+                                                        txt_start_uber_estimate_price.text=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
+                                                    }
+                                                    else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
+                                                        txt_start_uber_estimate_price.text="Rp. 35.000"
+                                                    }
+                                                    else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
+                                                        txt_start_uber_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                                                    }
+                                                    else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
+                                                        txt_start_uber_estimate_price.text="Rp. 9.000"
+                                                    }
+                                                    else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
+                                                        txt_start_uber_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                                                    }
+                                                    else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
+                                                        txt_start_uber_estimate_price.text="Rp. 9.000"
+                                                    }
+                                                    else{
+                                                        Toast.makeText(requireContext(),"Error saat memuat harga",Toast.LENGTH_LONG).show()
+                                                    }
 
                                                     btn_call_driver.setOnClickListener {
                                                         checkPermission()
@@ -767,6 +836,25 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                         tripPlanModel.currentLat = location.latitude
                                                         tripPlanModel.currentLng = location.longitude
                                                         tripPlanModel.typeOrder=event.typeOrder
+
+                                                        if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
+                                                            tripPlanModel.price=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
+                                                        }
+                                                        else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
+                                                            tripPlanModel.price="Rp. 35.000"
+                                                        }
+                                                        else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
+                                                            tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                                                        }
+                                                        else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
+                                                            tripPlanModel.price="Rp. 9.000"
+                                                        }
+                                                        else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
+                                                            tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
+                                                        }
+                                                        else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
+                                                            tripPlanModel.price="Rp. 9.000"
+                                                        }
 
                                                         tripPlanModel.isDone=true
                                                         //submit

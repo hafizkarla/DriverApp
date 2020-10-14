@@ -94,9 +94,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/layout_accept"
         android:layout_gravity="bottom"
-        android:layout_margin="8dp"
-        app:cardBackgroundColor="@color/blackpos"
-        app:cardCornerRadius="8dp"
+        android:layout_margin="24dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="12dp"
         android:visibility="gone">
         <LinearLayout
             android:layout_width="wrap_content"
@@ -111,7 +111,7 @@
                 android:layout_gravity="center_horizontal"
                 android:text="Tipe Order"
                 android:layout_marginRight="2dp"
-                android:textColor="@color/lightGray"
+                android:textColor="@color/Black"
                 android:textSize="20dp"
                 android:layout_marginBottom="5dp"
                 android:fontFamily="@font/open_sans_bold"
@@ -123,6 +123,17 @@
                 android:layout_gravity="center_horizontal"
                 android:orientation="horizontal">
 
+                <TextView
+                    android:id="@+id/txt_estimate_distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="8dp"
+                    android:fontFamily="@font/open_sans_bold"
+                    android:text="0.4 km"
+                    android:textAlignment="center"
+                    android:textColor="@color/Black"
+                    android:textSize="20dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -144,7 +155,7 @@
                         android:id="@+id/circularProgressBar"
                         android:layout_width="60dp"
                         android:layout_height="60dp"
-                        app:cpb_background_progressbar_color="@color/lightGray"
+                        app:cpb_background_progressbar_color="@color/colorPrimary"
                         app:cpb_background_progressbar_width="3dp"
                         app:cpb_progress="0"
                         app:cpb_progress_direction="to_right"
@@ -159,11 +170,22 @@
                         android:layout_centerInParent="true"
                         android:layout_gravity="center_horizontal"
                         android:clickable="false"
-                        app:tint="@color/lightGray"
+                        app:tint="@color/colorPrimary"
                         android:src="@drawable/ic_baseline_person_24"/>
 
                 </RelativeLayout>
-
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/txt_estimate_time"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="8dp"
+                    android:fontFamily="@font/open_sans_bold"
+                    android:text="2 Min"
+                    android:textAlignment="center"
+                    android:textColor="@color/Black"
+                    android:textSize="20dp"
+                    />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -181,28 +203,20 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/txt_estimate_time"
+                android:id="@+id/txt_estimate_price"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:text="2 min"
-                android:layout_marginRight="2dp"
-                android:textColor="@color/lightGray"
-                android:textSize="20dp"
-                android:fontFamily="@font/open_sans_bold"
+                android:fontFamily="@font/open_sans_light"
+                android:layout_marginTop="4dp"
+                android:text="2 Min"
+                android:layout_marginLeft="6dp"
                 android:textAlignment="center"
+                android:textColor="@color/Black"
+                android:textSize="16dp"
                 />
 
-            <TextView
-                android:id="@+id/txt_estimate_distance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginRight="2dp"
-                android:fontFamily="@font/open_sans_light"
-                android:text="0.4 km"
-                android:textAlignment="center"
-                android:textColor="@color/lightGray"
-                android:textSize="16dp" />
+
+
+
 
         </LinearLayout>
 
@@ -253,8 +267,18 @@
                     android:layout_centerVertical="true"
                     android:layout_toRightOf="@+id/img_start_uber"/>
             </RelativeLayout>
+            <TextView
+                android:layout_marginTop="4dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="estimasi harga"
+                android:layout_gravity="center"
+                android:fontFamily="@font/open_sans_light"
+                android:textColor="@color/space"
+                android:textSize="16dp"
+                android:id="@+id/txt_start_uber_estimate_price"/>
             <View
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
