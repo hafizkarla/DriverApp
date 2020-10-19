@@ -10,6 +10,7 @@ import android.content.res.Resources
 import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
@@ -78,8 +79,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
+
+    //media player
+    private var mediaPlayer: MediaPlayer? = null
     //views
-    private lateinit var chip_decline:Chip
+    private lateinit var btn_decline:Button
     private lateinit var layout_accept: CardView
     private lateinit var circularProgressBar:CircularProgressBar
     private lateinit var txt_estimate_time:TextView
@@ -87,8 +91,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var txt_estimate_distance:TextView
     private lateinit var root_layout:FrameLayout
 
+    private lateinit var btn_topup:Button
+
+
     private lateinit var txt_rating:TextView
-    private lateinit var txt_type_uber:TextView
     private lateinit var img_round:ImageView
     private lateinit var layout_start_uber:CardView
     private lateinit var layout_info_bojek:CardView
@@ -100,11 +106,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var txt_estimate_price:TextView
     private lateinit var img_phone_call:ImageView
     private lateinit var btn_call_driver:LoadingButton
+    private lateinit var btn_accept:Button
     private lateinit var btn_finish:LoadingButton
     private lateinit var txt_name:TextView
     private lateinit var txt_phone:TextView
     private lateinit var txt_motor_type:TextView
     private lateinit var txt_vehicle_number:TextView
+    private lateinit var txt_rating_home:TextView
 
     private var isTripStart=false
     private var onlineSystemAlreadyRegister=false
@@ -138,12 +146,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var geoFire: GeoFire
 
     //decline
-    private var driverRequestReceived:DriverRequestReceived?=null
+    private var driverRequestReceived: DriverRequestReceived?=null
     private var countDownEvent:Disposable?=null
 
     //format rupiah
     val localeId = Locale("in", "ID")
     val formatRupiah = NumberFormat.getCurrencyInstance(localeId)
+
+    //accept flag
+    var accept:Boolean=false
 
     private val onlineValueEventListener=object:ValueEventListener{
         override fun onDataChange(p0: DataSnapshot) {
@@ -186,10 +197,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private fun registerOnlineSystem() {
         if (!onlineSystemAlreadyRegister) {
-             onlineRef.addValueEventListener(onlineValueEventListener)
+            onlineRef.addValueEventListener(onlineValueEventListener)
             onlineSystemAlreadyRegister=true
         }
     }
+
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -198,19 +212,38 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     ): View? {
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_home, container, false)
+        mediaPlayer=MediaPlayer.create(context,R.raw.sound1)
+        mediaPlayer?.setOnPreparedListener {
+            println("READY TO GO")
+        }
+
+
 
         initViews(root)
+
+
         init()
+
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
 
+
         return root
+
+
+
+
     }
 
+
+
+
     private fun initViews(root: View?) {
-        chip_decline=root!!.findViewById(R.id.chip_decline) as Chip
+        btn_accept=root!!.findViewById(R.id.btn_accept) as Button
+        btn_topup=root.findViewById(R.id.btn_topup) as Button
+        btn_decline=root.findViewById(R.id.btn_decline) as Button
         layout_accept= root.findViewById(R.id.layout_accept) as CardView
         circularProgressBar= root.findViewById(R.id.circularProgressBar) as CircularProgressBar
         txt_estimate_time= root.findViewById(R.id.txt_estimate_time) as TextView
@@ -220,14 +253,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         root_layout= root.findViewById(R.id.root_layout) as FrameLayout
 
         txt_rating = root.findViewById(R.id.txt_rating) as TextView
-        txt_type_uber= root.findViewById(R.id.txt_type_uber) as TextView
         img_round= root.findViewById(R.id.img_round) as ImageView
         layout_start_uber= root.findViewById(R.id.layout_start_uber) as CardView
         layout_info_bojek=root.findViewById(R.id.layout_info_bojek) as CardView
         txt_rider_name = root.findViewById(R.id.txt_rider_name) as TextView
         txt_rider_number=root.findViewById(R.id.txt_rider_number) as TextView
-        txt_start_uber_estimate_price=root.findViewById(R.id.txt_start_uber_estimate_price) as TextView
         txt_start_uber_estimate_distance= root.findViewById(R.id.txt_start_uber_estimate_distance) as TextView
+        txt_start_uber_estimate_price=root.findViewById(R.id.txt_start_uber_estimate_price) as TextView
         txt_start_uber_estimate_time= root.findViewById(R.id.txt_start_uber_estimate_time) as TextView
         img_phone_call= root.findViewById(R.id.img_phone_call) as ImageView
         btn_call_driver= root.findViewById(R.id.btn_call_driver) as LoadingButton
@@ -236,23 +268,26 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         txt_name=root.findViewById(R.id.txt_name) as TextView
         txt_phone=root.findViewById(R.id.txt_phone) as TextView
         txt_motor_type=root.findViewById(R.id.txt_motor_type) as TextView
-        txt_vehicle_number=root.findViewById(R.id.txt_vehicle_number) as TextView
+        txt_vehicle_number=(root.findViewById(R.id.txt_vehicle_number) as? TextView)!!
+        txt_rating_home= (root.findViewById(R.id.txt_rating_home) as? TextView)!!
 
-        txt_name.text =Comon.currentUser!!.firstName+" "+Comon.currentUser!!.lastName
+        txt_name.text =Comon.currentUser!!.firstName+" "+ Comon.currentUser!!.lastName
         txt_phone.text=Comon.currentUser!!.phoneNumber
-        txt_motor_type.setText(Comon.currentUser!!.motorType)
-        txt_vehicle_number.setText(Comon.currentUser!!.vehicleLicenseNumber)
+        txt_motor_type.text=Comon.currentUser!!.motorType
+        txt_vehicle_number.text=Comon.currentUser!!.vehicleLicenseNumber
+        txt_rating_home.text= Comon.currentUser!!.rating.toString()
 
         //event
-        chip_decline.setOnClickListener {
+        btn_decline.setOnClickListener {
             if (driverRequestReceived!=null)
             {
                 if (countDownEvent!=null)
                 {
 
-                countDownEvent!!.dispose()
-                    chip_decline.visibility=View.GONE
+                    countDownEvent!!.dispose()
+                    layout_info_bojek.visibility=View.VISIBLE
                     layout_accept.visibility=View.GONE
+                    mediaPlayer?.stop()
                     mMap.clear()
                     circularProgressBar.progress=0f
                     UserUtils.sendDeclineRequest(
@@ -266,11 +301,25 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
+        btn_accept.setOnClickListener {
+            accept=true
+            mediaPlayer?.stop()
+            circularProgressBar.progress=100f
+            Toast.makeText(context,"Order berhasil diterima. Mohon menunggu sesaat...",
+                Toast.LENGTH_LONG
+            ).show()
+
+        }
+
+
+
+
     }
 
     private fun init() {
 
-        iGoogleAPI=RetrofitClient.instance!!.create(IGoogleAPI::class.java)
+
+        iGoogleAPI= RetrofitClient.instance!!.create(IGoogleAPI::class.java)
 
 
         onlineRef=FirebaseDatabase.getInstance().reference.child(".info/connected")
@@ -295,6 +344,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         updateLocation()
 
     }
+
+
 
     private fun updateLocation() {
         if (fusedLocationProviderClient==null)
@@ -324,6 +375,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             )
         }
     }
+
     private fun buildLocationCallback() {
         if (locationCallback==null)
         {
@@ -410,14 +462,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun buildLocationRequest() {
-      if (locationRequest==null)
-      {
-          locationRequest= LocationRequest()
-          locationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-          locationRequest!!.fastestInterval = 15000
-          locationRequest!!.interval=10000
-          locationRequest!!.smallestDisplacement = 50f
-      }
+        if (locationRequest==null)
+        {
+            locationRequest= LocationRequest()
+            locationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            locationRequest!!.fastestInterval = 15000
+            locationRequest!!.interval=10000
+            locationRequest!!.smallestDisplacement = 50f
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -512,6 +564,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         Snackbar.make(mapFragment.requireView(), "Kamu online!", Snackbar.LENGTH_SHORT).show()
 
     }
+
     @SuppressLint("SetTextI18n")
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onDriverRequestReceived(event: DriverRequestReceived)
@@ -564,7 +617,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                             }
                             polylineOptions = PolylineOptions()
-                            polylineOptions!!.color(Color.GRAY)
+                            polylineOptions!!.color(R.color.colorPrimary)
                             polylineOptions!!.width(12f)
                             polylineOptions!!.startCap(SquareCap())
                             polylineOptions!!.jointType(JointType.ROUND)
@@ -572,7 +625,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             greyPolyline = mMap.addPolyline(polylineOptions)
 
                             blackPolylineOptions = PolylineOptions()
-                            blackPolylineOptions!!.color(Color.BLACK)
+                            blackPolylineOptions!!.color(R.color.colorPrimary)
                             blackPolylineOptions!!.width(5f)
                             blackPolylineOptions!!.startCap(SquareCap())
                             blackPolylineOptions!!.jointType(JointType.ROUND)
@@ -620,28 +673,64 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                             txt_estimate_time.text = duration
                             txt_estimate_distance.text = distance
-                            type_order.text=event.typeOrder
+                            type_order.text = event.typeOrder
 
-                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
-                                txt_estimate_price.text=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
-                            }
-                            else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
-                                txt_estimate_price.text="Rp. 35.000"
-                            }
-                            else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
-                                txt_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                            }
-                            else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
-                                txt_estimate_price.text="Rp. 9.000"
-                            }
-                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
-                                txt_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                            }
-                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
-                                txt_estimate_price.text="Rp. 9.000"
-                            }
-                            else{
-                                Toast.makeText(requireContext(),"Error saat memuat harga",Toast.LENGTH_LONG).show()
+
+                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0, 3)
+                                    .toFloat() >= 5
+                            ) {
+                                txt_estimate_price.text = formatRupiah.format(
+                                    (35000 + ((distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() - 5) * 5000).toInt()).toDouble()
+                                )
+                            } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                    0,
+                                    3
+                                ).toFloat() < 5
+                            ) {
+                                txt_estimate_price.text = "Rp. 35.000"
+                            } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                    0,
+                                    3
+                                ).toFloat() >= 3
+                            ) {
+                                txt_estimate_price.text = formatRupiah.format(
+                                    (9000 + ((distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() - 3) * 1800).toInt()).toDouble()
+                                )
+                            } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                    0,
+                                    3
+                                ).toFloat() < 3
+                            ) {
+                                txt_estimate_price.text = "Rp. 9.000"
+                            } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                    0,
+                                    3
+                                ).toFloat() >= 3
+                            ) {
+                                txt_estimate_price.text = formatRupiah.format(
+                                    (9000 + ((distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() - 3) * 1800).toInt()).toDouble()
+                                )
+                            } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                    0,
+                                    3
+                                ).toFloat() < 3
+                            ) {
+                                txt_estimate_price.text = "Rp. 9.000"
+                            } else {
+                                makeText(
+                                    requireContext(),
+                                    "Error saat memuat harga",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
 
 
@@ -662,9 +751,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             mMap.moveCamera(CameraUpdateFactory.zoomTo(mMap.cameraPosition!!.zoom - 1))
 
                             //display layout
-                            chip_decline.visibility = View.VISIBLE
                             layout_accept.visibility = View.VISIBLE
-                            layout_info_bojek.visibility=View.GONE
+                            layout_info_bojek.visibility = View.GONE
+
+                            mediaPlayer?.start()
 
                             //countdown
                             countDownEvent = Observable.interval(100, TimeUnit.MILLISECONDS)
@@ -678,7 +768,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                 }.subscribe()
 
                         } catch (e: java.lang.Exception) {
-                            Toast.makeText(requireActivity(), e.message!!, Toast.LENGTH_LONG).show()
+                            makeText(requireActivity(), e.message!!, Toast.LENGTH_LONG).show()
                         }
                     }
                 )
@@ -695,11 +785,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val timeOffset = snapshot.getValue(Long::class.java)
 
+
                     //load rider information
                     FirebaseDatabase.getInstance()
                         .getReference(Comon.RIDER_INFO)
                         .child(event.key!!)
                         .addListenerForSingleValueEvent(object : ValueEventListener {
+                            @SuppressLint("SetTextI18n")
                             override fun onDataChange(snapshot: DataSnapshot) {
                                 if (snapshot.exists()) {
                                     var riderModel = snapshot.getValue(RiderModel::class.java)
@@ -733,42 +825,81 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                         .addOnSuccessListener { location ->
                                             //create trip planner
                                             val tripPlanModel = TripPlanModel()
-                                            tripPlanModel.driver =FirebaseAuth.getInstance().currentUser!!.uid
+                                            tripPlanModel.driver =
+                                                FirebaseAuth.getInstance().currentUser!!.uid
                                             tripPlanModel.rider = event.key
                                             tripPlanModel.driverInfoModel = Comon.currentUser
                                             tripPlanModel.riderModel = riderModel
                                             tripPlanModel.origin = event.pickupLocation
                                             tripPlanModel.originString = event.pickupLocationString
                                             tripPlanModel.destination = event.destinationLocation
-                                            tripPlanModel.destinationString = event.destinationLocationString
+                                            tripPlanModel.destinationString =
+                                                event.destinationLocationString
                                             tripPlanModel.distancePickup = distance
                                             tripPlanModel.durationPickup = duration
                                             tripPlanModel.currentLat = location.latitude
                                             tripPlanModel.currentLng = location.longitude
-                                            tripPlanModel.typeOrder=event.typeOrder
+                                            tripPlanModel.typeOrder = event.typeOrder
 
-                                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
-                                                tripPlanModel.price=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
-                                            }
-                                            else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
-                                                tripPlanModel.price="Rp. 35.000"
-                                            }
-                                            else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
-                                                tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                                            }
-                                            else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
-                                                tripPlanModel.price="Rp. 9.000"
-                                            }
-                                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
-                                                tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                                            }
-                                            else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
-                                                tripPlanModel.price="Rp. 9.000"
+                                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                                    0,
+                                                    3
+                                                ).toFloat() >= 5
+                                            ) {
+                                                tripPlanModel.price = formatRupiah.format(
+                                                    (35000 + ((distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() - 5) * 5000).toInt()).toDouble()
+                                                )
+                                            } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                                    0,
+                                                    3
+                                                ).toFloat() < 5
+                                            ) {
+                                                tripPlanModel.price = "Rp. 35.000"
+                                            } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                                    0,
+                                                    3
+                                                ).toFloat() >= 3
+                                            ) {
+                                                tripPlanModel.price = formatRupiah.format(
+                                                    (9000 + ((distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() - 3) * 1800).toInt()).toDouble()
+                                                )
+                                            } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                                    0,
+                                                    3
+                                                ).toFloat() < 3
+                                            ) {
+                                                tripPlanModel.price = "Rp. 9.000"
+                                            } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                                    0,
+                                                    3
+                                                ).toFloat() >= 3
+                                            ) {
+                                                tripPlanModel.price = formatRupiah.format(
+                                                    (9000 + ((distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() - 3) * 1800).toInt()).toDouble()
+                                                )
+                                            } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                                    0,
+                                                    3
+                                                ).toFloat() < 3
+                                            ) {
+                                                tripPlanModel.price = "Rp. 9.000"
                                             }
 
 
 
-                                            tripNumberId =Comon.createUniqueTripIdNumber(timeOffset)
+
+
+                                            tripNumberId =
+                                                Comon.createUniqueTripIdNumber(timeOffset)
 
 
                                             //submit
@@ -783,114 +914,224 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                     ).show()
                                                 }
                                                 .addOnSuccessListener { aVoid ->
-                                                    txt_rider_name.text =riderModel!!.firstName +" "+riderModel!!.lastName
+                                                    txt_rider_name.text = riderModel!!.firstName + " " + riderModel!!.lastName
                                                     txt_rider_number.text = riderModel.phoneNumber
                                                     phoneNumber = riderModel.phoneNumber
                                                     txt_start_uber_estimate_distance.text = distance
                                                     txt_start_uber_estimate_time.text = duration
 
-                                                    if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
-                                                        txt_start_uber_estimate_price.text=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
-                                                    }
-                                                    else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
-                                                        txt_start_uber_estimate_price.text="Rp. 35.000"
-                                                    }
-                                                    else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
-                                                        txt_start_uber_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                                                    }
-                                                    else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
-                                                        txt_start_uber_estimate_price.text="Rp. 9.000"
-                                                    }
-                                                    else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
-                                                        txt_start_uber_estimate_price.text=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                                                    }
-                                                    else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
-                                                        txt_start_uber_estimate_price.text="Rp. 9.000"
-                                                    }
-                                                    else{
-                                                        Toast.makeText(requireContext(),"Error saat memuat harga",Toast.LENGTH_LONG).show()
-                                                    }
-
-                                                    btn_call_driver.setOnClickListener {
-                                                        checkPermission()
-                                                    }
-                                                    btn_finish.setOnClickListener {
-                                                        UserUtils.sendDone(
-                                                            root_layout,
-                                                            activity!!,
-                                                            driverRequestReceived!!.key!!
-                                                        )
-                                                        driverRequestReceived=null
-                                                        val tripPlanModel = TripPlanModel()
-
-                                                        tripPlanModel.driver =FirebaseAuth.getInstance().currentUser!!.uid
-                                                        tripPlanModel.rider = event.key
-                                                        tripPlanModel.driverInfoModel = Comon.currentUser
-                                                        tripPlanModel.riderModel = riderModel
-                                                        tripPlanModel.origin = event.pickupLocation
-                                                        tripPlanModel.originString = event.pickupLocationString
-                                                        tripPlanModel.destination = event.destinationLocation
-                                                        tripPlanModel.destinationString =event.destinationLocationString
-                                                        tripPlanModel.distancePickup = distance
-                                                        tripPlanModel.durationPickup = duration
-                                                        tripPlanModel.currentLat = location.latitude
-                                                        tripPlanModel.currentLng = location.longitude
-                                                        tripPlanModel.typeOrder=event.typeOrder
-
-                                                        if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()>=5){
-                                                            tripPlanModel.price=formatRupiah.format((35000+((distance.substring(0,3).toFloat()-5)*5000).toInt()).toDouble())
-                                                        }
-                                                        else if(event.typeOrder.equals("Ojek Mobil") && distance.substring(0,3).toFloat()<5){
-                                                            tripPlanModel.price="Rp. 35.000"
-                                                        }
-                                                        else if (event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()>=3){
-                                                            tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                                                        }
-                                                        else if(event.typeOrder.equals("Ojek Motor") && distance.substring(0,3).toFloat()<3){
-                                                            tripPlanModel.price="Rp. 9.000"
-                                                        }
-                                                        else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()>=3){
-                                                            tripPlanModel.price=formatRupiah.format((9000+((distance.substring(0,3).toFloat()-3)*1800).toInt()).toDouble())
-                                                        }
-                                                        else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(0,3).toFloat()<3){
-                                                            tripPlanModel.price="Rp. 9.000"
-                                                        }
-
-                                                        tripPlanModel.isDone=true
-                                                        //submit
-                                                        FirebaseDatabase.getInstance().getReference(Comon.TRIP)
-                                                            .child(tripNumberId!!)
-                                                            .setValue(tripPlanModel)
-                                                            .addOnFailureListener { e ->
-                                                                Snackbar.make(
-                                                                    mapFragment.requireView(),
-                                                                    e.message!!,
-                                                                    Snackbar.LENGTH_LONG
-                                                                ).show()
-                                                            }
-                                                            .addOnSuccessListener { aVoid ->
-
-                                                        layout_start_uber.visibility=View.GONE
-                                                                layout_info_bojek.visibility=View.VISIBLE
-
-
-
-                                                        isTripStart=true
-                                                        chip_decline.visibility=View.GONE
-                                                        mMap.clear()
-                                                            }
+                                                    if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                                            0,
+                                                            3
+                                                        ).toFloat() >= 5
+                                                    ) {
+                                                        txt_start_uber_estimate_price.text =
+                                                            formatRupiah.format(
+                                                                (35000 + ((distance.substring(
+                                                                    0,
+                                                                    3
+                                                                )
+                                                                    .toFloat() - 5) * 5000).toInt()).toDouble()
+                                                            )
+                                                    } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                                            0,
+                                                            3
+                                                        ).toFloat() < 5
+                                                    ) {
+                                                        txt_start_uber_estimate_price.text =
+                                                            "Rp. 35.000"
+                                                    } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                                            0,
+                                                            3
+                                                        ).toFloat() >= 3
+                                                    ) {
+                                                        txt_start_uber_estimate_price.text =
+                                                            formatRupiah.format(
+                                                                (9000 + ((distance.substring(
+                                                                    0,
+                                                                    3
+                                                                )
+                                                                    .toFloat() - 3) * 1800).toInt()).toDouble()
+                                                            )
+                                                    } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                                            0,
+                                                            3
+                                                        ).toFloat() < 3
+                                                    ) {
+                                                        txt_start_uber_estimate_price.text =
+                                                            "Rp. 9.000"
+                                                    } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                                            0,
+                                                            3
+                                                        ).toFloat() >= 3
+                                                    ) {
+                                                        txt_start_uber_estimate_price.text =
+                                                            formatRupiah.format(
+                                                                (9000 + ((distance.substring(
+                                                                    0,
+                                                                    3
+                                                                )
+                                                                    .toFloat() - 3) * 1800).toInt()).toDouble()
+                                                            )
+                                                    } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                                            0,
+                                                            3
+                                                        ).toFloat() < 3
+                                                    ) {
+                                                        txt_start_uber_estimate_price.text =
+                                                            "Rp. 9.000"
+                                                    } else {
+                                                        makeText(
+                                                            requireContext(),
+                                                            "Error saat memuat harga",
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
                                                     }
 
 
-
-
-
-                                                    setOfflineModeForDriver(
-                                                        event,
-                                                        duration,
-                                                        distance
-                                                    )
                                                 }
+                                            btn_call_driver.setOnClickListener {
+                                                checkPermission()
+                                            }
+                                            btn_finish.setOnClickListener {
+                                                UserUtils.sendDone(
+                                                    root_layout,
+                                                    activity!!,
+                                                    driverRequestReceived!!.key!!
+                                                )
+                                                driverRequestReceived = null
+                                                val tripPlanModel = TripPlanModel()
+
+                                                tripPlanModel.driver =
+                                                    FirebaseAuth.getInstance().currentUser!!.uid
+                                                tripPlanModel.rider = event.key
+                                                tripPlanModel.driverInfoModel =
+                                                    Comon.currentUser
+                                                tripPlanModel.riderModel = riderModel
+                                                tripPlanModel.origin = event.pickupLocation
+                                                tripPlanModel.originString =
+                                                    event.pickupLocationString
+                                                tripPlanModel.destination =
+                                                    event.destinationLocation
+                                                tripPlanModel.destinationString =
+                                                    event.destinationLocationString
+                                                tripPlanModel.distancePickup = distance
+                                                tripPlanModel.durationPickup = duration
+                                                tripPlanModel.currentLat = location.latitude
+                                                tripPlanModel.currentLng =
+                                                    location.longitude
+                                                tripPlanModel.typeOrder = event.typeOrder
+
+                                                if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() >= 5
+                                                ) {
+                                                    tripPlanModel.price =
+                                                        formatRupiah.format(
+                                                            (35000 + ((distance.substring(
+                                                                0,
+                                                                3
+                                                            )
+                                                                .toFloat() - 5) * 5000).toInt()).toDouble()
+                                                        )
+                                                } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() < 5
+                                                ) {
+                                                    tripPlanModel.price = "Rp. 35.000"
+                                                } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() >= 3
+                                                ) {
+                                                    tripPlanModel.price =
+                                                        formatRupiah.format(
+                                                            (9000 + ((distance.substring(
+                                                                0,
+                                                                3
+                                                            )
+                                                                .toFloat() - 3) * 1800).toInt()).toDouble()
+                                                        )
+                                                } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() < 3
+                                                ) {
+                                                    tripPlanModel.price = "Rp. 9.000"
+                                                } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() >= 3
+                                                ) {
+                                                    tripPlanModel.price =
+                                                        formatRupiah.format(
+                                                            (9000 + ((distance.substring(
+                                                                0,
+                                                                3
+                                                            )
+                                                                .toFloat() - 3) * 1800).toInt()).toDouble()
+                                                        )
+                                                } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                                        0,
+                                                        3
+                                                    ).toFloat() < 3
+                                                ) {
+                                                    tripPlanModel.price = "Rp. 9.000"
+                                                }
+
+                                                tripPlanModel.isDone = true
+                                                //submit
+                                                FirebaseDatabase.getInstance().getReference(
+                                                    Comon.TRIP
+                                                )
+                                                    .child(tripNumberId!!)
+                                                    .setValue(tripPlanModel)
+                                                    .addOnFailureListener { e ->
+                                                        Snackbar.make(
+                                                            mapFragment.requireView(),
+                                                            e.message!!,
+                                                            Snackbar.LENGTH_LONG
+                                                        ).show()
+                                                    }
+                                                    .addOnSuccessListener { aVoid ->
+
+                                                        layout_start_uber.visibility =
+                                                            View.GONE
+                                                        layout_info_bojek.visibility =
+                                                            View.VISIBLE
+
+
+
+                                                        isTripStart = true
+                                                        mMap.clear()
+                                                    }
+                                            }
+                                            if (accept){
+                                                circularProgressBar.progress=100f
+                                                layout_accept.visibility=View.GONE
+                                                setOfflineModeForDriver(
+                                                    event,
+                                                    duration,
+                                                    distance
+                                                )}
+                                            if (!accept){
+                                                countDownEvent!!.dispose()
+                                                layout_info_bojek.visibility=View.VISIBLE
+                                                layout_accept.visibility=View.GONE
+                                                mediaPlayer?.stop()
+                                                mMap.clear()
+                                                circularProgressBar.progress=0f
+                                                UserUtils.sendDeclineRequest(
+                                                    root_layout,
+                                                    activity!!,
+                                                    driverRequestReceived!!.key!!
+                                                )
+                                                driverRequestReceived=null
+
+                                            }
+
                                         }
 
                                 } else
@@ -921,22 +1162,28 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             })
     }
     fun checkPermission() {
-        if (ContextCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.CALL_PHONE)
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CALL_PHONE
+            )
             != PackageManager.PERMISSION_GRANTED) {
 
             // Permission is not granted
             // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(),
-                    Manifest.permission.CALL_PHONE)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    requireActivity(),
+                    Manifest.permission.CALL_PHONE
+                )) {
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
             } else {
                 // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(requireActivity(),
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
                     arrayOf(Manifest.permission.CALL_PHONE),
-                    42)
+                    42
+                )
             }
         } else {
             // Permission has already been granted
@@ -944,8 +1191,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, grantResults: IntArray
+    ) {
         if (requestCode == 42) {
             // If request is cancelled, the result arrays are empty.
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
@@ -964,6 +1213,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         startActivity(intent)
     }
 
+
+
     private fun setOfflineModeForDriver(
         event: DriverRequestReceived,
         duration: String,
@@ -981,7 +1232,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         setLayoutProcess(false)
         layout_accept.visibility=View.GONE
-        chip_decline.visibility=View.GONE
+        mediaPlayer?.stop()
         layout_start_uber.visibility=View.VISIBLE
         layout_info_bojek.visibility=View.GONE
 
@@ -1017,8 +1268,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         txt_estimate_distance.setTextColor(color)
         type_order.setTextColor(color)
         txt_rating.setTextColor(color)
-        txt_type_uber.setTextColor(color)
         ImageViewCompat.setImageTintList(img_round, ColorStateList.valueOf(color))
+
+    }
+
+    override fun onStop() {
+        super.onStop()
 
     }
 
