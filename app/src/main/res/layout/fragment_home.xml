@@ -113,6 +113,15 @@
                         android:layout_centerHorizontal="true"
                         android:textColor="@color/colorPrimary"
                         android:backgroundTint="@color/white"/>
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mode aktif"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:id="@+id/mode_true"
+                        android:buttonTint="@color/white"
+                        android:textColor="@color/white"/>
 
                 </RelativeLayout>
             </LinearLayout>

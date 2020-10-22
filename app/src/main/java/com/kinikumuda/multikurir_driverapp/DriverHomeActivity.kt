@@ -7,8 +7,10 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.Menu
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -28,17 +30,22 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.kinikumuda.multikurir_driverapp.Utils.UserUtils
+import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.android.synthetic.main.fragment_home.*
 import java.lang.StringBuilder
 
-class DriverHomeActivity : AppCompatActivity() {
+class DriverHomeActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navView:NavigationView
+    private lateinit var homeView:FrameLayout
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navController: NavController
     private lateinit var img_avatar: ImageView
     private lateinit var waitingDialog: AlertDialog
     private lateinit var storageReference: StorageReference
     private var imageUri: Uri?=null
+
+    private lateinit var btn_finish:CircleImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -193,4 +200,9 @@ class DriverHomeActivity : AppCompatActivity() {
     companion object{
         val PICK_IMAGE_REQUEST=7272
     }
+
+    override fun onClick(v: View?) {
+    }
+
+
 }

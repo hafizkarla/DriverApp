@@ -46,4 +46,6 @@
     <string name="undang">Undang teman</string>
     <string name="bantuan">Pusat bantuan</string>
     <string name="kebijakan">Kebijakan dan privasi</string>
+    <string name="complete_failed">Complete trip failed</string>
+    <string name="complete_trip">Your trip has been done</string>
 </resources>

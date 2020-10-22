@@ -6,6 +6,8 @@ import android.provider.Settings.Global.getString
 import android.provider.Settings.Secure.getString
 import android.view.View
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -50,6 +52,181 @@ object UserUtils {
             .addOnSuccessListener {  }
     }
 
+    fun sendDeclineRequestAndDeleteTrip(view: View, activity: FragmentActivity, key: String,tripNumberId: String?) {
+        val compositeDisposable= CompositeDisposable()
+        val ifcmService= RetrofitFCMClient.instance!!.create(IFCMService::class.java)
+
+        //remove trip id
+        FirebaseDatabase.getInstance().getReference(Comon.TRIP)
+            .child(tripNumberId!!)
+            .removeValue()
+            .addOnFailureListener { e->Snackbar.make(view,e.message!!,Snackbar.LENGTH_SHORT).show()
+            }
+            .addOnSuccessListener {
+                FirebaseDatabase.getInstance()
+                    .getReference(Comon.TOKEN_REFERENCE)
+                    .child(key)
+                    .addListenerForSingleValueEvent(object:ValueEventListener{
+                        override fun onCancelled(databaseError: DatabaseError) {
+                            Snackbar.make(view,databaseError.message,Snackbar.LENGTH_LONG).show()
+                        }
+
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                            if (dataSnapshot.exists()){
+
+                                val tokenModel=dataSnapshot.getValue(TokenModel::class.java)
+
+                                val notificationData:MutableMap<String,String> = HashMap()
+                                notificationData.put(Comon.NOTI_TITLE,Comon.REQUEST_DRIVER_DECLINE)
+                                notificationData.put(Comon.NOTI_BODY,"This message represent for decline action from Driver")
+                                notificationData.put(Comon.DRIVER_KEY,FirebaseAuth.getInstance().currentUser!!.uid)
+
+
+                                val fcmSendData= FCMSendData(tokenModel!!.token,notificationData)
+
+                                compositeDisposable.add(ifcmService.sendNotification(fcmSendData)!!
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe({fcmResponse->
+                                        if (fcmResponse!!.success == 0)
+                                        {
+                                            compositeDisposable.clear()
+                                            Snackbar.make(view,activity.getString(R.string.decline_failed),Snackbar.LENGTH_LONG).show()
+                                        }
+                                        else
+                                        {
+                                            Snackbar.make(view,activity.getString(R.string.decline_success),Snackbar.LENGTH_LONG).show()
+                                        }
+                                    },{t: Throwable?->
+
+                                        compositeDisposable.clear()
+                                        Snackbar.make(view,t!!.message!!,Snackbar.LENGTH_LONG).show()
+
+                                    }))
+                            }
+                            else
+                            {
+                                compositeDisposable.clear()
+                                Snackbar.make(view,activity.getString(R.string.token_not_found),Snackbar.LENGTH_LONG).show()
+                            }
+                        }
+
+                    })
+            }
+
+
+    }
+    fun sendDone(view: View, context: Context,key:String?, tripNumberId: String?) {
+        val compositeDisposable= CompositeDisposable()
+        val ifcmService= RetrofitFCMClient.instance!!.create(IFCMService::class.java)
+
+
+                FirebaseDatabase.getInstance()
+                    .getReference(Comon.TOKEN_REFERENCE)
+                    .child(key!!)
+                    .addListenerForSingleValueEvent(object:ValueEventListener{
+                        override fun onCancelled(databaseError: DatabaseError) {
+                            Snackbar.make(view,databaseError.message,Snackbar.LENGTH_LONG).show()
+                        }
+
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                            if (dataSnapshot.exists()){
+
+                                val tokenModel=dataSnapshot.getValue(TokenModel::class.java)
+
+                                val notificationData:MutableMap<String,String> = HashMap()
+                                notificationData.put(Comon.NOTI_TITLE,Comon.REQUEST_DRIVER_DONE)
+                                notificationData.put(Comon.NOTI_BODY,"This message represent for done action from Driver")
+                                notificationData.put(Comon.TRIP_KEY,tripNumberId!!)
+
+
+                                val fcmSendData= FCMSendData(tokenModel!!.token,notificationData)
+
+                                compositeDisposable.add(ifcmService.sendNotification(fcmSendData)!!
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe({fcmResponse->
+                                        if (fcmResponse!!.success == 0)
+                                        {
+                                            compositeDisposable.clear()
+                                            Snackbar.make(view,context.getString(R.string.complete_failed),Snackbar.LENGTH_LONG).show()
+                                        }
+                                        else
+                                        {
+                                            Snackbar.make(view,context.getString(R.string.complete_trip),Snackbar.LENGTH_LONG).show()
+                                        }
+                                    },{t: Throwable?->
+
+                                        compositeDisposable.clear()
+                                        Snackbar.make(view,t!!.message!!,Snackbar.LENGTH_LONG).show()
+
+                                    }))
+                            }
+                            else
+                            {
+                                compositeDisposable.clear()
+                                Snackbar.make(view,context.getString(R.string.token_not_found),Snackbar.LENGTH_LONG).show()
+                            }
+                        }
+
+                    })
+
+}
+    fun sendAcceptRequestToRider(view: View?, requireContext: Context, key: String, tripNumberId: String?) {
+        val compositeDisposable= CompositeDisposable()
+        val ifcmService=RetrofitFCMClient.instance!!.create(IFCMService::class.java)
+
+        //get token
+        FirebaseDatabase.getInstance()
+            .getReference(Comon.TOKEN_REFERENCE)
+            .child(key)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists())
+                    {
+                        val tokenModel=dataSnapshot.getValue(TokenModel::class.java)
+
+                        val notificationData:MutableMap<String,String> = HashMap()
+                        notificationData.put(Comon.NOTI_TITLE,Comon.REQUEST_DRIVER_ACCEPT)
+                        notificationData.put(Comon.NOTI_BODY,"This message represent for accept action from Driver")
+                        notificationData.put(Comon.DRIVER_KEY, FirebaseAuth.getInstance().currentUser!!.uid)
+                        notificationData.put(Comon.TRIP_KEY,tripNumberId!!)
+
+
+                        val fcmSendData= FCMSendData(tokenModel!!.token,notificationData)
+
+                        compositeDisposable.add(ifcmService.sendNotification(fcmSendData)!!
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({fcmResponse->
+                                if (fcmResponse!!.success == 0)
+                                {
+                                    compositeDisposable.clear()
+                                    Snackbar.make(view!!,requireContext.getString(R.string.accept_failed),
+                                        Snackbar.LENGTH_LONG).show()
+                                }
+
+                            },{t: Throwable?->
+
+                                compositeDisposable.clear()
+                                Snackbar.make(view!!,t!!.message!!, Snackbar.LENGTH_LONG).show()
+
+                            }))
+                    }
+                    else
+                    {
+                        compositeDisposable.clear()
+                        Snackbar.make(view!!,requireContext.getString(R.string.token_not_found),
+                            Snackbar.LENGTH_LONG).show()
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Snackbar.make(view!!,databaseError.message, Snackbar.LENGTH_LONG).show()
+                }
+
+            })
+    }
     fun sendDeclineRequest(view: View, activity: Activity, key: String) {
         val compositeDisposable= CompositeDisposable()
         val ifcmService= RetrofitFCMClient.instance!!.create(IFCMService::class.java)
@@ -67,7 +244,7 @@ object UserUtils {
                         val notificationData:MutableMap<String,String> = HashMap()
                         notificationData.put(Comon.NOTI_TITLE,Comon.REQUEST_DRIVER_DECLINE)
                         notificationData.put(Comon.NOTI_BODY,"This message represent for decline action from Driver")
-                        notificationData.put(Comon.DRIVER_KEY,FirebaseAuth.getInstance().currentUser!!.uid)
+                        notificationData.put(Comon.DRIVER_KEY, FirebaseAuth.getInstance().currentUser!!.uid)
 
 
                         val fcmSendData= FCMSendData(tokenModel!!.token,notificationData)
@@ -79,137 +256,30 @@ object UserUtils {
                                 if (fcmResponse!!.success == 0)
                                 {
                                     compositeDisposable.clear()
-                                    Snackbar.make(view,activity.getString(R.string.decline_failed),Snackbar.LENGTH_LONG).show()
+                                    Snackbar.make(view,activity.getString(R.string.decline_failed),
+                                        Snackbar.LENGTH_LONG).show()
                                 }
                                 else
                                 {
-                                    Snackbar.make(view,activity.getString(R.string.decline_success),Snackbar.LENGTH_LONG).show()
+                                    Snackbar.make(view,activity.getString(R.string.decline_success),
+                                        Snackbar.LENGTH_LONG).show()
                                 }
                             },{t: Throwable?->
 
                                 compositeDisposable.clear()
-                                Snackbar.make(view,t!!.message!!,Snackbar.LENGTH_LONG).show()
+                                Snackbar.make(view,t!!.message!!, Snackbar.LENGTH_LONG).show()
 
                             }))
                     }
                     else
                     {
                         compositeDisposable.clear()
-                        Snackbar.make(view,activity.getString(R.string.token_not_found),Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(view,activity.getString(R.string.token_not_found), Snackbar.LENGTH_LONG).show()
                     }
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
-                    Snackbar.make(view,databaseError.message,Snackbar.LENGTH_LONG).show()
-                }
-
-            })
-    }
-    fun sendDone(view: View, activity: Activity, key: String) {
-        val compositeDisposable= CompositeDisposable()
-        val ifcmService= RetrofitFCMClient.instance!!.create(IFCMService::class.java)
-
-        //get token
-        FirebaseDatabase.getInstance()
-            .getReference(Comon.TOKEN_REFERENCE)
-            .child(key)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (dataSnapshot.exists())
-                    {
-                        val tokenModel=dataSnapshot.getValue(TokenModel::class.java)
-
-                        val notificationData:MutableMap<String,String> = HashMap()
-                        notificationData.put(Comon.NOTI_TITLE,Comon.REQUEST_DRIVER_DONE)
-                        notificationData.put(Comon.NOTI_BODY,"Your package has been arrived!")
-                        notificationData.put(Comon.DRIVER_KEY,FirebaseAuth.getInstance().currentUser!!.uid)
-
-
-                        val fcmSendData= FCMSendData(tokenModel!!.token,notificationData)
-
-                        compositeDisposable.add(ifcmService.sendNotification(fcmSendData)!!
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe({fcmResponse->
-                                if (fcmResponse!!.success == 0)
-                                {
-                                    compositeDisposable.clear()
-                                    Snackbar.make(view,activity.getString(R.string.done_request_failed),Snackbar.LENGTH_LONG).show()
-                                }
-                                else
-                                {
-                                    Snackbar.make(view,activity.getString(R.string.done_success),Snackbar.LENGTH_LONG).show()
-                                }
-                            },{t: Throwable?->
-
-                                compositeDisposable.clear()
-                                Snackbar.make(view,t!!.message!!,Snackbar.LENGTH_LONG).show()
-
-                            }))
-                    }
-                    else
-                    {
-                        compositeDisposable.clear()
-                        Snackbar.make(view,activity.getString(R.string.token_not_found),Snackbar.LENGTH_LONG).show()
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Snackbar.make(view,databaseError.message,Snackbar.LENGTH_LONG).show()
-                }
-
-            })
-    }
-
-    fun sendAcceptRequestToRider(view: View?, requireContext: Context, key: String, tripNumberId: String?) {
-        val compositeDisposable=CompositeDisposable()
-        val ifcmService=RetrofitFCMClient.instance!!.create(IFCMService::class.java)
-
-        //get token
-        FirebaseDatabase.getInstance()
-            .getReference(Comon.TOKEN_REFERENCE)
-            .child(key)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    if (dataSnapshot.exists())
-                    {
-                        val tokenModel=dataSnapshot.getValue(TokenModel::class.java)
-
-                        val notificationData:MutableMap<String,String> = HashMap()
-                        notificationData.put(Comon.NOTI_TITLE,Comon.REQUEST_DRIVER_ACCEPT)
-                        notificationData.put(Comon.NOTI_BODY,"This message represent for accept action from Driver")
-                        notificationData.put(Comon.DRIVER_KEY,FirebaseAuth.getInstance().currentUser!!.uid)
-                        notificationData.put(Comon.TRIP_KEY,tripNumberId!!)
-
-
-                        val fcmSendData= FCMSendData(tokenModel!!.token,notificationData)
-
-                        compositeDisposable.add(ifcmService.sendNotification(fcmSendData)!!
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe({fcmResponse->
-                                if (fcmResponse!!.success == 0)
-                                {
-                                    compositeDisposable.clear()
-                                    Snackbar.make(view!!,requireContext.getString(R.string.accept_failed),Snackbar.LENGTH_LONG).show()
-                                }
-
-                            },{t: Throwable?->
-
-                                compositeDisposable.clear()
-                                Snackbar.make(view!!,t!!.message!!,Snackbar.LENGTH_LONG).show()
-
-                            }))
-                    }
-                    else
-                    {
-                        compositeDisposable.clear()
-                        Snackbar.make(view!!,requireContext.getString(R.string.token_not_found),Snackbar.LENGTH_LONG).show()
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Snackbar.make(view!!,databaseError.message,Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(view,databaseError.message, Snackbar.LENGTH_LONG).show()
                 }
 
             })

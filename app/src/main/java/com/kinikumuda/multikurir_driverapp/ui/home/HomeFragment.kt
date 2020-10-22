@@ -3,13 +3,15 @@ package com.kinikumuda.multikurir_driverapp.ui.home
 import android.Manifest
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Resources
-import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
@@ -37,7 +39,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -49,16 +50,13 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import com.kinikumuda.multikurir_driverapp.Comon
 import com.kinikumuda.multikurir_driverapp.DriverHomeActivity
-import com.kinikumuda.multikurir_driverapp.Model.DriverInfoModel
 import com.kinikumuda.multikurir_driverapp.Model.EventBus.DriverRequestReceived
-import com.kinikumuda.multikurir_driverapp.Model.EventBus.OnDriverStart
 import com.kinikumuda.multikurir_driverapp.Model.RiderModel
 import com.kinikumuda.multikurir_driverapp.Model.TripPlanModel
 import com.kinikumuda.multikurir_driverapp.R
 import com.kinikumuda.multikurir_driverapp.Remote.IGoogleAPI
 import com.kinikumuda.multikurir_driverapp.Remote.RetrofitClient
 import com.kinikumuda.multikurir_driverapp.Utils.UserUtils
-import com.kusu.library.LoadingButton
 import com.mikhaellopez.circularprogressbar.CircularProgressBar
 import de.hdodenhof.circleimageview.CircleImageView
 import io.reactivex.Observable
@@ -67,19 +65,18 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.fragment_home.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-import org.jetbrains.anko.find
 import org.json.JSONObject
-import org.w3c.dom.Text
 import java.io.IOException
 import java.text.NumberFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
-class HomeFragment : Fragment(), OnMapReadyCallback {
 
+class HomeFragment : Fragment(), OnMapReadyCallback {
 
     //media player
     private var mediaPlayer: MediaPlayer? = null
@@ -155,11 +152,13 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     //accept flag
     var accept:Boolean=false
+    var valueCheck:Boolean=true
 
     private val onlineValueEventListener=object:ValueEventListener{
         override fun onDataChange(p0: DataSnapshot) {
             if(p0.exists() && currentUserRef != null)
                 currentUserRef!!.onDisconnect().removeValue()
+
         }
 
         override fun onCancelled(p0: DatabaseError) {
@@ -172,6 +171,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         super.onStart()
         if (!EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().register(this)
+
+
+
     }
     override fun onDestroy() {
         fusedLocationProviderClient!!.removeLocationUpdates(locationCallback)
@@ -187,7 +189,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         EventBus.getDefault().unregister(this)
         super.onDestroy()
     }
-
 
     override fun onResume() {
 
@@ -212,29 +213,70 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     ): View? {
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_home, container, false)
-        mediaPlayer=MediaPlayer.create(context,R.raw.sound1)
+        mediaPlayer=MediaPlayer.create(context, R.raw.sound1)
         mediaPlayer?.setOnPreparedListener {
             println("READY TO GO")
+        }
+
+        val setting = context?.getSharedPreferences("Settings", Context.MODE_PRIVATE)
+        val checkBox = setting?.getBoolean("aktif", true)
+        if (checkBox==true)
+            root.mode_true.isChecked = true
+        else
+            root.mode_true.isChecked = false
+
+
+
+        root.mode_true.setOnClickListener {
+            if (root.mode_true.isChecked==true) {
+                valueCheck = true
+                if (ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Snackbar.make(
+                        mapFragment.requireView(),
+                        getString(R.string.permission_require),
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+                fusedLocationProviderClient!!.lastLocation
+                    .addOnFailureListener { e->
+                        Snackbar.make(mapFragment.requireView(), e.message!!, Snackbar.LENGTH_SHORT).show()
+                    }
+                    .addOnSuccessListener { location->
+
+                        makeDriverOnline(location)
+
+                    }
+            }
+            else{
+                valueCheck = false
+                currentUserRef!!.removeValue()
+            }
+            val mSettings: SharedPreferences =requireActivity().getSharedPreferences(
+                "Settings",
+                Context.MODE_PRIVATE
+            )
+            val editor = mSettings.edit()
+            editor.putBoolean("aktif",valueCheck)
+            editor.apply()
         }
 
 
 
         initViews(root)
-
-
         init()
-
 
         mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-
-
         return root
-
-
-
-
     }
 
 
@@ -300,15 +342,68 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
+
+
         btn_accept.setOnClickListener {
             accept=true
             mediaPlayer?.stop()
             circularProgressBar.progress=100f
-            Toast.makeText(context,"Order berhasil diterima. Mohon menunggu sesaat...",
+            Toast.makeText(
+                context, "Order berhasil diterima. Mohon menunggu sesaat...",
                 Toast.LENGTH_LONG
             ).show()
 
         }
+
+        btn_finish.setOnClickListener {
+            val update_trip=HashMap<String, Any>()
+            update_trip.put("done", true)
+            FirebaseDatabase.getInstance()
+                .getReference(Comon.TRIP)
+                .child(tripNumberId!!)
+                .updateChildren(update_trip)
+                .addOnFailureListener{ e->Snackbar.make(
+                    requireView(),
+                    e.message!!,
+                    Snackbar.LENGTH_LONG
+                ).show()}
+                .addOnSuccessListener {
+                    fusedLocationProviderClient!!.lastLocation
+                        .addOnFailureListener { e->
+                            Snackbar.make(requireView(), e.message!!, Snackbar.LENGTH_LONG).show()
+                        }.addOnSuccessListener { location->
+                            UserUtils.sendDone(
+                                mapFragment.requireView(),
+                                requireContext(),
+                                driverRequestReceived!!.key,
+                                tripNumberId!!
+                            )
+                            //reset view
+
+                            tripNumberId=""
+                            isTripStart=false
+                            layout_accept.visibility=View.GONE
+                            circularProgressBar.progress=0.toFloat()
+                            layout_start_uber.visibility=View.GONE
+
+                            btn_finish.isEnabled=false
+                            btn_finish.visibility=View.GONE
+                            layout_info_bojek.visibility =View.VISIBLE
+
+                            driverRequestReceived=null
+                            makeDriverOnline(location)
+
+
+                            mMap.clear()
+
+                        }
+                }
+        }
+
+        btn_call_driver.setOnClickListener {
+            checkPermission()
+        }
+
 
 
 
@@ -320,8 +415,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
         iGoogleAPI= RetrofitClient.instance!!.create(IGoogleAPI::class.java)
 
+            onlineRef = FirebaseDatabase.getInstance().reference.child(".info/connected")
 
-        onlineRef=FirebaseDatabase.getInstance().reference.child(".info/connected")
 
 
 
@@ -388,49 +483,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     )
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos, 18f))
 
-                    if (!isTripStart) {
-                        val geoCoder = Geocoder(requireContext(), Locale.getDefault())
-                        val addressList: List<Address>?
-                        try {
-                            addressList = geoCoder.getFromLocation(
-                                locationResult.lastLocation.latitude,
-                                locationResult.lastLocation.longitude,
-                                1
-                            )
-                            val cityName = addressList[0].locality
-
-                            driverLocationRef = FirebaseDatabase.getInstance()
-                                .getReference(Comon.DRIVER_LOCATION_REFERENCE)
-                                .child(cityName)
-                            currentUserRef = driverLocationRef.child(
-                                FirebaseAuth.getInstance().currentUser!!.uid
-                            )
-                            geoFire = GeoFire(driverLocationRef)
-                            //update location
-                            geoFire.setLocation(
-                                FirebaseAuth.getInstance().currentUser!!.uid,
-                                GeoLocation(
-                                    locationResult.lastLocation.latitude,
-                                    locationResult.lastLocation.longitude
-                                ),
-
-                                ) { key: String?, error: DatabaseError? ->
-                                if (error != null)
-                                    Snackbar.make(
-                                        mapFragment.requireView(),
-                                        error.message,
-                                        Snackbar.LENGTH_LONG
-                                    ).show()
-
-
-                            }
-
-                            registerOnlineSystem()
-
-
-                        } catch (e: IOException) {
-                            Snackbar.make(requireView(), e.message!!, Snackbar.LENGTH_SHORT).show()
-                        }
+                    if (!isTripStart && valueCheck==true) {
+                        makeDriverOnline(locationResult.lastLocation!!)
                     }
                     else
                     {
@@ -458,6 +512,52 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    private fun makeDriverOnline(location: Location) {
+        val geoCoder = Geocoder(requireContext(), Locale.getDefault())
+        val addressList: List<Address>?
+        try {
+            addressList = geoCoder.getFromLocation(
+                location.latitude,
+                location.longitude,
+                1
+            )
+            val cityName = addressList[0].locality
+
+            driverLocationRef = FirebaseDatabase.getInstance()
+                .getReference(Comon.DRIVER_LOCATION_REFERENCE)
+                .child(cityName)
+            currentUserRef = driverLocationRef.child(
+                FirebaseAuth.getInstance().currentUser!!.uid
+            )
+            geoFire = GeoFire(driverLocationRef)
+            //update location
+            geoFire.setLocation(
+                FirebaseAuth.getInstance().currentUser!!.uid,
+                GeoLocation(
+                    location.latitude,
+                    location.longitude
+                ),
+
+                ) { key: String?, error: DatabaseError? ->
+                if (error != null)
+                    Snackbar.make(
+                        mapFragment.requireView(),
+                        error.message,
+                        Snackbar.LENGTH_LONG
+                    ).show()
+
+
+            }
+
+            registerOnlineSystem()
+
+
+        } catch (e: IOException) {
+            Snackbar.make(requireView(), e.message!!, Snackbar.LENGTH_SHORT).show()
+        }
+
     }
 
     private fun buildLocationRequest() {
@@ -559,8 +659,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         {
             Log.e("EDMT_ERROR", e.message.toString())
         }
-
-        Snackbar.make(mapFragment.requireView(), "Kamu online!", Snackbar.LENGTH_SHORT).show()
+        
 
     }
 
@@ -913,7 +1012,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                     ).show()
                                                 }
                                                 .addOnSuccessListener { aVoid ->
-                                                    txt_rider_name.text = riderModel!!.firstName + " " + riderModel!!.lastName
+                                                    txt_rider_name.text =
+                                                        riderModel!!.firstName + " " + riderModel!!.lastName
                                                     txt_rider_number.text = riderModel.phoneNumber
                                                     phoneNumber = riderModel.phoneNumber
                                                     txt_start_uber_estimate_distance.text = distance
@@ -989,147 +1089,32 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
 
                                                 }
-                                            btn_call_driver.setOnClickListener {
-                                                checkPermission()
-                                            }
-                                            btn_finish.setOnClickListener {
-                                                UserUtils.sendDone(
-                                                    root_layout,
-                                                    activity!!,
-                                                    driverRequestReceived!!.key!!
-                                                )
-                                                driverRequestReceived = null
-                                                val tripPlanModel = TripPlanModel()
 
-                                                tripPlanModel.driver =
-                                                    FirebaseAuth.getInstance().currentUser!!.uid
-                                                tripPlanModel.rider = event.key
-                                                tripPlanModel.driverInfoModel =
-                                                    Comon.currentUser
-                                                tripPlanModel.riderModel = riderModel
-                                                tripPlanModel.origin = event.pickupLocation
-                                                tripPlanModel.originString =
-                                                    event.pickupLocationString
-                                                tripPlanModel.destination =
-                                                    event.destinationLocation
-                                                tripPlanModel.destinationString =
-                                                    event.destinationLocationString
-                                                tripPlanModel.distancePickup = distance
-                                                tripPlanModel.durationPickup = duration
-                                                tripPlanModel.currentLat = location.latitude
-                                                tripPlanModel.currentLng =
-                                                    location.longitude
-                                                tripPlanModel.typeOrder = event.typeOrder
-
-                                                if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
-                                                        0,
-                                                        3
-                                                    ).toFloat() >= 5
-                                                ) {
-                                                    tripPlanModel.price =
-                                                        formatRupiah.format(
-                                                            (35000 + ((distance.substring(
-                                                                0,
-                                                                3
-                                                            )
-                                                                .toFloat() - 5) * 5000).toInt()).toDouble()
-                                                        )
-                                                } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
-                                                        0,
-                                                        3
-                                                    ).toFloat() < 5
-                                                ) {
-                                                    tripPlanModel.price = "Rp. 35.000"
-                                                } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
-                                                        0,
-                                                        3
-                                                    ).toFloat() >= 3
-                                                ) {
-                                                    tripPlanModel.price =
-                                                        formatRupiah.format(
-                                                            (9000 + ((distance.substring(
-                                                                0,
-                                                                3
-                                                            )
-                                                                .toFloat() - 3) * 1800).toInt()).toDouble()
-                                                        )
-                                                } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
-                                                        0,
-                                                        3
-                                                    ).toFloat() < 3
-                                                ) {
-                                                    tripPlanModel.price = "Rp. 9.000"
-                                                } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
-                                                        0,
-                                                        3
-                                                    ).toFloat() >= 3
-                                                ) {
-                                                    tripPlanModel.price =
-                                                        formatRupiah.format(
-                                                            (9000 + ((distance.substring(
-                                                                0,
-                                                                3
-                                                            )
-                                                                .toFloat() - 3) * 1800).toInt()).toDouble()
-                                                        )
-                                                } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
-                                                        0,
-                                                        3
-                                                    ).toFloat() < 3
-                                                ) {
-                                                    tripPlanModel.price = "Rp. 9.000"
-                                                }
-
-                                                tripPlanModel.isDone = true
-                                                //submit
-                                                FirebaseDatabase.getInstance().getReference(
-                                                    Comon.TRIP
-                                                )
-                                                    .child(tripNumberId!!)
-                                                    .setValue(tripPlanModel)
-                                                    .addOnFailureListener { e ->
-                                                        Snackbar.make(
-                                                            mapFragment.requireView(),
-                                                            e.message!!,
-                                                            Snackbar.LENGTH_LONG
-                                                        ).show()
-                                                    }
-                                                    .addOnSuccessListener { aVoid ->
-
-                                                        layout_start_uber.visibility =
-                                                            View.GONE
-                                                        layout_info_bojek.visibility =
-                                                            View.VISIBLE
-
-
-
-                                                        isTripStart = true
-                                                        mMap.clear()
-                                                    }
-                                            }
-                                            if (accept){
-                                                circularProgressBar.progress=100f
-                                                layout_accept.visibility=View.GONE
+                                            if (accept) {
+                                                circularProgressBar.progress = 100f
+                                                layout_accept.visibility = View.GONE
                                                 setOfflineModeForDriver(
                                                     event,
                                                     duration,
                                                     distance
-                                                )}
-                                            if (!accept){
+                                                )
+                                            }
+                                            if (!accept) {
                                                 countDownEvent!!.dispose()
-                                                layout_info_bojek.visibility=View.VISIBLE
-                                                layout_accept.visibility=View.GONE
+                                                layout_info_bojek.visibility = View.VISIBLE
+                                                layout_accept.visibility = View.GONE
                                                 mediaPlayer?.stop()
                                                 mMap.clear()
-                                                circularProgressBar.progress=0f
+                                                circularProgressBar.progress = 0f
                                                 UserUtils.sendDeclineRequest(
                                                     root_layout,
                                                     activity!!,
                                                     driverRequestReceived!!.key!!
                                                 )
-                                                driverRequestReceived=null
+                                                driverRequestReceived = null
 
                                             }
+
 
                                         }
 
@@ -1273,6 +1258,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     override fun onStop() {
         super.onStop()
+        driverRequestReceived=null
+        isTripStart=false
+        currentUserRef!!.removeValue()
 
     }
 
