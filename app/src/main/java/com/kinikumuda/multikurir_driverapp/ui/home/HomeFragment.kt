@@ -60,6 +60,7 @@ import com.kinikumuda.multikurir_driverapp.Remote.RetrofitClient
 import com.kinikumuda.multikurir_driverapp.Utils.UserUtils
 import com.kusu.library.LoadingButton
 import com.mikhaellopez.circularprogressbar.CircularProgressBar
+import de.hdodenhof.circleimageview.CircleImageView
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -104,10 +105,9 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var txt_start_uber_estimate_time:TextView
     private lateinit var txt_start_uber_estimate_price:TextView
     private lateinit var txt_estimate_price:TextView
-    private lateinit var img_phone_call:ImageView
-    private lateinit var btn_call_driver:LoadingButton
+    private lateinit var btn_call_driver:CircleImageView
     private lateinit var btn_accept:Button
-    private lateinit var btn_finish:LoadingButton
+    private lateinit var btn_finish:CircleImageView
     private lateinit var txt_name:TextView
     private lateinit var txt_phone:TextView
     private lateinit var txt_motor_type:TextView
@@ -261,9 +261,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         txt_start_uber_estimate_distance= root.findViewById(R.id.txt_start_uber_estimate_distance) as TextView
         txt_start_uber_estimate_price=root.findViewById(R.id.txt_start_uber_estimate_price) as TextView
         txt_start_uber_estimate_time= root.findViewById(R.id.txt_start_uber_estimate_time) as TextView
-        img_phone_call= root.findViewById(R.id.img_phone_call) as ImageView
-        btn_call_driver= root.findViewById(R.id.btn_call_driver) as LoadingButton
-        btn_finish=root.findViewById(R.id.btn_finish) as LoadingButton
+        btn_call_driver= root.findViewById(R.id.btn_call_driver) as CircleImageView
+        btn_finish=root.findViewById(R.id.btn_finish) as CircleImageView
 
         txt_name=root.findViewById(R.id.txt_name) as TextView
         txt_phone=root.findViewById(R.id.txt_phone) as TextView
