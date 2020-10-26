@@ -70,32 +70,42 @@ class DriverHomeActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun init() {
-
-        storageReference= FirebaseStorage.getInstance().getReference()
-        waitingDialog= AlertDialog.Builder(this)
+        storageReference = FirebaseStorage.getInstance().getReference()
+        waitingDialog = AlertDialog.Builder(this)
             .setMessage("Waiting...")
             .setCancelable(false).create()
 
-        navView.setNavigationItemSelectedListener {it ->
-            if (it.itemId==R.id.nav_sign_out)
-            {
-                val builder= AlertDialog.Builder(this@DriverHomeActivity)
+        navView.setNavigationItemSelectedListener { it ->
+            if (it.itemId == R.id.nav_sign_out) {
+                val builder = AlertDialog.Builder(this@DriverHomeActivity)
                 builder.setTitle("Sign out")
                     .setMessage("Do you realy want to sign out?")
-                    .setNegativeButton("CANCEL",{dialogInterface, _ -> dialogInterface.dismiss()})
-                    .setPositiveButton("SIGN OUT"){dialogInterface, _ ->
+                    .setNegativeButton("CANCEL",
+                        { dialogInterface, _ -> dialogInterface.dismiss() })
+                    .setPositiveButton("SIGN OUT") { dialogInterface, _ ->
                         FirebaseAuth.getInstance().signOut()
-                        val intent= Intent(this@DriverHomeActivity,SplashScreenActivity::class.java)
+                        val intent =
+                            Intent(this@DriverHomeActivity, SplashScreenActivity::class.java)
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         startActivity(intent)
                         finish()
                     }.setCancelable(false)
-                val dialog=builder.create()
-                dialog.setOnShowListener{
+                val dialog = builder.create()
+                dialog.setOnShowListener {
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                        .setTextColor(ContextCompat.getColor(this@DriverHomeActivity,android.R.color.holo_red_dark))
+                        .setTextColor(
+                            ContextCompat.getColor(
+                                this@DriverHomeActivity,
+                                android.R.color.holo_red_dark
+                            )
+                        )
                     dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                        .setTextColor(ContextCompat.getColor(this@DriverHomeActivity,R.color.space))
+                        .setTextColor(
+                            ContextCompat.getColor(
+                                this@DriverHomeActivity,
+                                R.color.space
+                            )
+                        )
                 }
                 dialog.show()
             }
@@ -103,14 +113,14 @@ class DriverHomeActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         val headerView = navView.getHeaderView(0)
-        val txt_name=headerView.findViewById<View>(R.id.txt_name) as TextView
-        val txt_phone=headerView.findViewById<View>(R.id.txt_phone) as TextView
-        val txt_star=headerView.findViewById<View>(R.id.txt_star) as TextView
-        img_avatar=headerView.findViewById<View>(R.id.img_avatar) as ImageView
+        val txt_name = headerView.findViewById<View>(R.id.txt_name) as TextView
+        val txt_phone = headerView.findViewById<View>(R.id.txt_phone) as TextView
+        val txt_star = headerView.findViewById<View>(R.id.txt_star) as TextView
+        img_avatar = headerView.findViewById<View>(R.id.img_avatar) as ImageView
 
         //additional
-        val txt_motor_type =headerView.findViewById<View>(R.id.txt_motor_type) as TextView
-        val txt_vehicle_number=headerView.findViewById<View>(R.id.txt_vehicle_number) as TextView
+        val txt_motor_type = headerView.findViewById<View>(R.id.txt_motor_type) as TextView
+        val txt_vehicle_number = headerView.findViewById<View>(R.id.txt_vehicle_number) as TextView
 
         txt_name.setText(Comon.buildWelcomMessage())
         txt_phone.setText(Comon.currentUser!!.phoneNumber)
@@ -120,18 +130,21 @@ class DriverHomeActivity : AppCompatActivity(), View.OnClickListener {
         txt_motor_type.setText(Comon.currentUser!!.motorType)
         txt_vehicle_number.setText(Comon.currentUser!!.vehicleLicenseNumber)
 
-        if (Comon.currentUser !=null &&Comon.currentUser!!.avatar !=null)
-        {
+        if (Comon.currentUser != null && Comon.currentUser!!.avatar != null) {
             Glide.with(this)
                 .load(Comon.currentUser!!.avatar)
                 .into(img_avatar)
         }
-        img_avatar.setOnClickListener{
-            val intent= Intent()
+        img_avatar.setOnClickListener {
+            val intent = Intent()
             intent.setType("image/*")
             intent.setAction(Intent.ACTION_GET_CONTENT)
-            startActivityForResult(Intent.createChooser(intent, "Select Picture"),PICK_IMAGE_REQUEST)
+            startActivityForResult(
+                Intent.createChooser(intent, "Select Picture"),
+                PICK_IMAGE_REQUEST
+            )
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

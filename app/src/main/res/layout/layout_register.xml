@@ -25,11 +25,12 @@
                 android:textColor="@color/colorPrimary"
                 android:textSize="22dp" />
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
+                android:layout_marginTop="20dp"
                 android:fontFamily="@font/open_sans_light"
                 android:orientation="horizontal"
                 android:weightSum="2">
@@ -43,10 +44,10 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edt_first_name"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/open_sans_light"
+                        style="@style/editTextOneLine"
                         android:hint="@string/first_name"
                         android:textColor="@color/space"
                         android:textColorHint="@color/dark_gray" />
@@ -62,9 +63,9 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edt_last_name"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        style="@style/editTextOneLine"
                         android:fontFamily="@font/open_sans_light"
                         android:hint="@string/last_name"
                         android:textColor="@color/space"
@@ -86,10 +87,34 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
+                    style="@style/editTextOneLine"
                     android:hint="@string/phone_number"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />
             </com.google.android.material.textfield.TextInputLayout>
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="10dp"
+                android:id="@+id/radiogroup"
+                android:fontFamily="@font/open_sans_light">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Type Mitra: "/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bike"
+                    android:id="@+id/motor"/>
+                <RadioButton
+                    android:layout_marginLeft="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Car"
+                    android:id="@+id/mobil"/>
+            </RadioGroup>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
@@ -101,6 +126,7 @@
                     android:id="@+id/edt_id_number"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    style="@style/editTextOneLine"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/id_number"
                     android:inputType="number"
@@ -120,6 +146,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/address"
+                    style="@style/editTextOneLine"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -130,7 +157,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                android:hint="Tanggal Lahir"
+                android:hint="DOB"
                 android:onClick="createDatePickerDialog"
                 android:textColor="@color/space"
                 app:boxStrokeColor="@color/colorPrimary"
@@ -158,6 +185,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/agama"
+                    style="@style/editTextOneLine"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -172,6 +200,7 @@
                     android:id="@+id/edt_jenis_kelamin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    style="@style/editTextOneLine"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/jenis_kelamin"
                     android:textColor="@color/space"
@@ -190,6 +219,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/status"
+                    style="@style/editTextOneLine"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -204,6 +234,7 @@
                     android:id="@+id/edt_asal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    style="@style/editTextOneLine"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/asal"
                     android:textColor="@color/space"
@@ -222,6 +253,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
                     android:hint="@string/drive_license"
+                    style="@style/editTextOneLine"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -237,6 +269,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
+                    style="@style/editTextOneLine"
                     android:hint="@string/motor_type"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />
@@ -253,6 +286,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/open_sans_light"
+                    style="@style/editTextOneLine"
                     android:hint="@string/vehicle_license_number"
                     android:textColor="@color/space"
                     android:textColorHint="@color/dark_gray" />

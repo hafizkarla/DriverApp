@@ -11,6 +11,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.firebase.ui.auth.AuthMethodPickerLayout
@@ -154,8 +156,14 @@ class SplashScreenActivity : AppCompatActivity() {
                 override fun onDataChange(p0: DataSnapshot) {
                     if (p0.exists()){
                         val model=p0.getValue(DriverInfoModel::class.java)
-                        goToHomeActivity(model)
-                    }else{
+                        if (model!!.verification) {
+                            goToHomeActivity(model)
+                        }
+                        else{
+                            goToVerifyActivity()
+                        }
+                    }
+                    else{
                         showRegisterLayout()
                     }
                 }
@@ -189,6 +197,10 @@ class SplashScreenActivity : AppCompatActivity() {
         val edt_tanggal_lahir = itemView.findViewById<View>(R.id.edt_tanggal_lahir) as TextInputEditText
 
         val btn_continue = itemView.findViewById<View>(R.id.btn_register) as Button
+
+        val radiogroup=itemView.findViewById<View>(R.id.radiogroup) as RadioGroup
+        val motor =itemView.findViewById<View>(R.id.motor) as RadioButton
+        val mobil =itemView.findViewById<View>(R.id.mobil) as RadioButton
 
         //set data
         if (FirebaseAuth.getInstance().currentUser!!.phoneNumber != null &&
@@ -225,11 +237,11 @@ class SplashScreenActivity : AppCompatActivity() {
         //event
         btn_continue.setOnClickListener {
             when {
-                TextUtils.isDigitsOnly(edt_first_name.text.toString()) -> {
+                TextUtils.isEmpty(edt_first_name.text.toString()) -> {
                     Toast.makeText(this@SplashScreenActivity,"Masukkan Nama Depan", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                TextUtils.isDigitsOnly(edt_last_name.text.toString()) -> {
+                TextUtils.isEmpty(edt_last_name.text.toString()) -> {
                     Toast.makeText(this@SplashScreenActivity,"Masukkan Nama Belakang", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -277,6 +289,10 @@ class SplashScreenActivity : AppCompatActivity() {
                     Toast.makeText(this@SplashScreenActivity,"Masukkan Tanggal Lahir", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+                radiogroup.checkedRadioButtonId == -1 -> {
+                    Toast.makeText(this@SplashScreenActivity,"Masukkan Jenis Mitra", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 else -> {
                     val model= DriverInfoModel()
                     model.firstName=edt_first_name.text.toString()
@@ -296,8 +312,15 @@ class SplashScreenActivity : AppCompatActivity() {
                     model.address=edt_address.text.toString()
                     model.status=edt_status.text.toString()
                     model.jenisKelamin=edt_jenis_kelamin.text.toString()
-                    model.tanggalLahir=edt_tanggal_lahir!!.text.toString()
+                    model.tanggalLahir=edt_tanggal_lahir.text.toString()
                     model.asal=edt_asal.text.toString()
+
+                    if (motor.isChecked){
+                        model.typeMitra="Motor"
+                    }
+                    else if (mobil.isChecked){
+                        model.typeMitra="Mobil"
+                    }
 
 
                     driverInfoRef.child(FirebaseAuth.getInstance().currentUser!!.uid)
@@ -312,7 +335,8 @@ class SplashScreenActivity : AppCompatActivity() {
                             Toast.makeText(this@SplashScreenActivity,"Register successfully.",Toast.LENGTH_SHORT).show()
                             dialog.dismiss()
 
-                            goToHomeActivity(model)
+                            goToVerifyActivity()
+//                            goToHomeActivity(model)
 
                             progress_bar.visibility= View.GONE
                         }
@@ -326,6 +350,11 @@ class SplashScreenActivity : AppCompatActivity() {
         startActivity(Intent(this, DriverHomeActivity::class.java))
         finish()
     }
+    private fun goToVerifyActivity() {
+        startActivity(Intent(this, VerifyDriverActivity::class.java))
+        finish()
+    }
+
 
 
 }

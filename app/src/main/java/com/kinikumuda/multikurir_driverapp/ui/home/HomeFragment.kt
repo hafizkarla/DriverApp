@@ -667,210 +667,215 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onDriverRequestReceived(event: DriverRequestReceived)
     {
-        driverRequestReceived=event
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(),
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Snackbar.make(
-                requireView(),
-                getString(R.string.permission_require),
-                Snackbar.LENGTH_LONG
-            ).show()
-            return
-        }
-        fusedLocationProviderClient!!.lastLocation
-            .addOnFailureListener{ e->
-                Snackbar.make(requireView(), e.message!!, Snackbar.LENGTH_LONG).show()
+        if (Comon.currentUser!!.typeMitra=="Motor" && event.typeOrder=="Ojek Motor" ||
+            Comon.currentUser!!.typeMitra=="Motor" && event.typeOrder=="Ojek Kurir" ||
+            Comon.currentUser!!.typeMitra=="Mobil" && event.typeOrder=="Ojek Mobil" ){
+            driverRequestReceived=event
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Snackbar.make(
+                    requireView(),
+                    getString(R.string.permission_require),
+                    Snackbar.LENGTH_LONG
+                ).show()
+                return
             }
-            .addOnSuccessListener { location->
-                compositeDisposable.add(iGoogleAPI.getDirection(
-                    "driving",
-                    "less_driving",
-                    StringBuilder()
-                        .append(location.latitude)
-                        .append(",")
-                        .append(location.longitude)
-                        .toString(),
-                    event.destinationLocation,
-                    getString(R.string.google_api_key)
-                )
-                !!.subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { returnResult ->
-                        Log.d("API_RETURN", returnResult)
-                        try {
+            fusedLocationProviderClient!!.lastLocation
+                .addOnFailureListener{ e->
+                    Snackbar.make(requireView(), e.message!!, Snackbar.LENGTH_LONG).show()
+                }
+                .addOnSuccessListener { location->
+                    compositeDisposable.add(iGoogleAPI.getDirection(
+                        "driving",
+                        "less_driving",
+                        StringBuilder()
+                            .append(location.latitude)
+                            .append(",")
+                            .append(location.longitude)
+                            .toString(),
+                        event.destinationLocation,
+                        getString(R.string.google_api_key)
+                    )
+                    !!.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { returnResult ->
+                            Log.d("API_RETURN", returnResult)
+                            try {
 
-                            val jsonObject = JSONObject(returnResult)
-                            val jsonArray = jsonObject.getJSONArray("routes")
-                            for (i in 0 until jsonArray.length()) {
-                                val route = jsonArray.getJSONObject(i)
-                                val poly = route.getJSONObject("overview_polyline")
-                                val polyline = poly.getString("points")
-                                polylineList = Comon.decodePoly(polyline)
+                                val jsonObject = JSONObject(returnResult)
+                                val jsonArray = jsonObject.getJSONArray("routes")
+                                for (i in 0 until jsonArray.length()) {
+                                    val route = jsonArray.getJSONObject(i)
+                                    val poly = route.getJSONObject("overview_polyline")
+                                    val polyline = poly.getString("points")
+                                    polylineList = Comon.decodePoly(polyline)
 
-                            }
-                            polylineOptions = PolylineOptions()
-                            polylineOptions!!.color(R.color.colorPrimary)
-                            polylineOptions!!.width(12f)
-                            polylineOptions!!.startCap(SquareCap())
-                            polylineOptions!!.jointType(JointType.ROUND)
-                            polylineOptions!!.addAll(polylineList)
-                            greyPolyline = mMap.addPolyline(polylineOptions)
-
-                            blackPolylineOptions = PolylineOptions()
-                            blackPolylineOptions!!.color(R.color.colorPrimary)
-                            blackPolylineOptions!!.width(5f)
-                            blackPolylineOptions!!.startCap(SquareCap())
-                            blackPolylineOptions!!.jointType(JointType.ROUND)
-                            blackPolylineOptions!!.addAll(polylineList)
-                            blackPolyLine = mMap.addPolyline(blackPolylineOptions)
-
-                            //animator
-                            val valueAnimator = ValueAnimator.ofInt(0, 100)
-                            valueAnimator.duration = 1100
-                            valueAnimator.repeatCount = ValueAnimator.INFINITE
-                            valueAnimator.interpolator = LinearInterpolator()
-                            valueAnimator.addUpdateListener { value ->
-                                val points = greyPolyline!!.points
-                                val percentValue = value.animatedValue.toString().toInt()
-                                val size = points.size
-                                val newpoints = (size * (percentValue / 100.0f)).toInt()
-                                val p = points.subList(0, newpoints)
-                                blackPolyLine!!.points = (p)
-
-                            }
-
-                            valueAnimator.start()
-
-                            val origin = LatLng(location.latitude, location.longitude)
-                            val destination = LatLng(
-                                event.pickupLocation!!.split(",")[0].toDouble(),
-                                event.pickupLocation!!.split(",")[1].toDouble()
-                            )
-
-                            val latLngBound = LatLngBounds.Builder().include(origin)
-                                .include(destination)
-                                .build()
-
-                            //add car icon for origin
-                            val objects = jsonArray.getJSONObject(0)
-                            val legs = objects.getJSONArray("legs")
-                            val legsObject = legs.getJSONObject(0)
-
-                            val time = legsObject.getJSONObject("duration")
-                            val duration = time.getString("text")
-
-
-                            val distanceEstimate = legsObject.getJSONObject("distance")
-                            val distance = distanceEstimate.getString("text")
-
-                            txt_estimate_time.text = duration
-                            txt_estimate_distance.text = distance
-                            type_order.text = event.typeOrder
-
-
-                            if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0, 3)
-                                    .toFloat() >= 5
-                            ) {
-                                txt_estimate_price.text = formatRupiah.format(
-                                    (35000 + ((distance.substring(
-                                        0,
-                                        3
-                                    ).toFloat() - 5) * 5000).toInt()).toDouble()
-                                )
-                            } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
-                                    0,
-                                    3
-                                ).toFloat() < 5
-                            ) {
-                                txt_estimate_price.text = "Rp. 35.000"
-                            } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
-                                    0,
-                                    3
-                                ).toFloat() >= 3
-                            ) {
-                                txt_estimate_price.text = formatRupiah.format(
-                                    (9000 + ((distance.substring(
-                                        0,
-                                        3
-                                    ).toFloat() - 3) * 1800).toInt()).toDouble()
-                                )
-                            } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
-                                    0,
-                                    3
-                                ).toFloat() < 3
-                            ) {
-                                txt_estimate_price.text = "Rp. 9.000"
-                            } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
-                                    0,
-                                    3
-                                ).toFloat() >= 3
-                            ) {
-                                txt_estimate_price.text = formatRupiah.format(
-                                    (9000 + ((distance.substring(
-                                        0,
-                                        3
-                                    ).toFloat() - 3) * 1800).toInt()).toDouble()
-                                )
-                            } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
-                                    0,
-                                    3
-                                ).toFloat() < 3
-                            ) {
-                                txt_estimate_price.text = "Rp. 9.000"
-                            } else {
-                                makeText(
-                                    requireContext(),
-                                    "Error saat memuat harga",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-
-
-
-                            mMap.addMarker(
-                                MarkerOptions().position(destination).icon(
-                                    BitmapDescriptorFactory.defaultMarker()
-                                )
-                                    .title("Pickup Location")
-                            )
-
-                            mMap.moveCamera(
-                                CameraUpdateFactory.newLatLngBounds(
-                                    latLngBound,
-                                    160
-                                )
-                            )
-                            mMap.moveCamera(CameraUpdateFactory.zoomTo(mMap.cameraPosition!!.zoom - 1))
-
-                            //display layout
-                            layout_accept.visibility = View.VISIBLE
-                            layout_info_bojek.visibility = View.GONE
-
-                            mediaPlayer?.start()
-
-                            //countdown
-                            countDownEvent = Observable.interval(100, TimeUnit.MILLISECONDS)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .doOnNext { x ->
-                                    circularProgressBar.progress += 1f
                                 }
-                                .takeUntil { aLong -> aLong == "100".toLong() } //10sec
-                                .doOnComplete {
-                                    createTripPlan(event, duration, distance)
-                                }.subscribe()
+                                polylineOptions = PolylineOptions()
+                                polylineOptions!!.color(R.color.colorPrimary)
+                                polylineOptions!!.width(12f)
+                                polylineOptions!!.startCap(SquareCap())
+                                polylineOptions!!.jointType(JointType.ROUND)
+                                polylineOptions!!.addAll(polylineList)
+                                greyPolyline = mMap.addPolyline(polylineOptions)
 
-                        } catch (e: java.lang.Exception) {
-                            makeText(requireActivity(), e.message!!, Toast.LENGTH_LONG).show()
+                                blackPolylineOptions = PolylineOptions()
+                                blackPolylineOptions!!.color(R.color.colorPrimary)
+                                blackPolylineOptions!!.width(5f)
+                                blackPolylineOptions!!.startCap(SquareCap())
+                                blackPolylineOptions!!.jointType(JointType.ROUND)
+                                blackPolylineOptions!!.addAll(polylineList)
+                                blackPolyLine = mMap.addPolyline(blackPolylineOptions)
+
+                                //animator
+                                val valueAnimator = ValueAnimator.ofInt(0, 100)
+                                valueAnimator.duration = 1100
+                                valueAnimator.repeatCount = ValueAnimator.INFINITE
+                                valueAnimator.interpolator = LinearInterpolator()
+                                valueAnimator.addUpdateListener { value ->
+                                    val points = greyPolyline!!.points
+                                    val percentValue = value.animatedValue.toString().toInt()
+                                    val size = points.size
+                                    val newpoints = (size * (percentValue / 100.0f)).toInt()
+                                    val p = points.subList(0, newpoints)
+                                    blackPolyLine!!.points = (p)
+
+                                }
+
+                                valueAnimator.start()
+
+                                val origin = LatLng(location.latitude, location.longitude)
+                                val destination = LatLng(
+                                    event.pickupLocation!!.split(",")[0].toDouble(),
+                                    event.pickupLocation!!.split(",")[1].toDouble()
+                                )
+
+                                val latLngBound = LatLngBounds.Builder().include(origin)
+                                    .include(destination)
+                                    .build()
+
+                                //add car icon for origin
+                                val objects = jsonArray.getJSONObject(0)
+                                val legs = objects.getJSONArray("legs")
+                                val legsObject = legs.getJSONObject(0)
+
+                                val time = legsObject.getJSONObject("duration")
+                                val duration = time.getString("text")
+
+
+                                val distanceEstimate = legsObject.getJSONObject("distance")
+                                val distance = distanceEstimate.getString("text")
+
+                                txt_estimate_time.text = duration
+                                txt_estimate_distance.text = distance
+                                type_order.text = event.typeOrder
+
+
+                                if (event.typeOrder.equals("Ojek Mobil") && distance.substring(0, 3)
+                                        .toFloat() >= 5
+                                ) {
+                                    txt_estimate_price.text = formatRupiah.format(
+                                        (35000 + ((distance.substring(
+                                            0,
+                                            3
+                                        ).toFloat() - 5) * 5000).toInt()).toDouble()
+                                    )
+                                } else if (event.typeOrder.equals("Ojek Mobil") && distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() < 5
+                                ) {
+                                    txt_estimate_price.text = "Rp. 35.000"
+                                } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() >= 3
+                                ) {
+                                    txt_estimate_price.text = formatRupiah.format(
+                                        (9000 + ((distance.substring(
+                                            0,
+                                            3
+                                        ).toFloat() - 3) * 1800).toInt()).toDouble()
+                                    )
+                                } else if (event.typeOrder.equals("Ojek Motor") && distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() < 3
+                                ) {
+                                    txt_estimate_price.text = "Rp. 9.000"
+                                } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() >= 3
+                                ) {
+                                    txt_estimate_price.text = formatRupiah.format(
+                                        (9000 + ((distance.substring(
+                                            0,
+                                            3
+                                        ).toFloat() - 3) * 1800).toInt()).toDouble()
+                                    )
+                                } else if (event.typeOrder.equals("Ojek Kurir") && distance.substring(
+                                        0,
+                                        3
+                                    ).toFloat() < 3
+                                ) {
+                                    txt_estimate_price.text = "Rp. 9.000"
+                                } else {
+                                    makeText(
+                                        requireContext(),
+                                        "Error saat memuat harga",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+
+
+
+                                mMap.addMarker(
+                                    MarkerOptions().position(destination).icon(
+                                        BitmapDescriptorFactory.defaultMarker()
+                                    )
+                                        .title("Pickup Location")
+                                )
+
+                                mMap.moveCamera(
+                                    CameraUpdateFactory.newLatLngBounds(
+                                        latLngBound,
+                                        160
+                                    )
+                                )
+                                mMap.moveCamera(CameraUpdateFactory.zoomTo(mMap.cameraPosition!!.zoom - 1))
+
+                                //display layout
+                                layout_accept.visibility = View.VISIBLE
+                                layout_info_bojek.visibility = View.GONE
+
+                                mediaPlayer?.start()
+
+                                //countdown
+                                countDownEvent = Observable.interval(100, TimeUnit.MILLISECONDS)
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .doOnNext { x ->
+                                        circularProgressBar.progress += 1f
+                                    }
+                                    .takeUntil { aLong -> aLong == "100".toLong() } //10sec
+                                    .doOnComplete {
+                                        createTripPlan(event, duration, distance)
+                                    }.subscribe()
+
+                            } catch (e: java.lang.Exception) {
+                                makeText(requireActivity(), e.message!!, Toast.LENGTH_LONG).show()
+                            }
                         }
-                    }
-                )
-            }
+                    )
+                }
+        }
+
     }
 
 
