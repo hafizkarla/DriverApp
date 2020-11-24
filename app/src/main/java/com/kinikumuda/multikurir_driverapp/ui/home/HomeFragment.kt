@@ -48,7 +48,9 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import com.kinikumuda.multikurir_driverapp.ChatActivity
 import com.kinikumuda.multikurir_driverapp.Comon
+import com.kinikumuda.multikurir_driverapp.Constrants.AppConstants
 import com.kinikumuda.multikurir_driverapp.DriverHomeActivity
 import com.kinikumuda.multikurir_driverapp.Model.EventBus.DriverRequestReceived
 import com.kinikumuda.multikurir_driverapp.Model.RiderModel
@@ -69,6 +71,7 @@ import kotlinx.android.synthetic.main.fragment_home.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import org.jetbrains.anko.support.v4.startActivity
 import org.json.JSONObject
 import java.io.IOException
 import java.text.NumberFormat
@@ -104,6 +107,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var txt_estimate_price:TextView
     private lateinit var btn_call_driver:CircleImageView
     private lateinit var btn_accept:Button
+    private lateinit var btn_chat:CircleImageView
     private lateinit var btn_finish:CircleImageView
     private lateinit var txt_name:TextView
     private lateinit var txt_phone:TextView
@@ -116,6 +120,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private var tripNumberId:String?=""
     private var phoneNumber:String?=""
+    private var userId:String?=""
+    private var riderName:String?=""
 
     //routes
     private val compositeDisposable= CompositeDisposable()
@@ -305,6 +311,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         txt_start_uber_estimate_time= root.findViewById(R.id.txt_start_uber_estimate_time) as TextView
         btn_call_driver= root.findViewById(R.id.btn_call_driver) as CircleImageView
         btn_finish=root.findViewById(R.id.btn_finish) as CircleImageView
+        btn_chat = root.findViewById(R.id.btn_chat) as CircleImageView
 
         txt_name=root.findViewById(R.id.txt_name) as TextView
         txt_phone=root.findViewById(R.id.txt_phone) as TextView
@@ -403,11 +410,15 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         btn_call_driver.setOnClickListener {
             checkPermission()
         }
+        btn_chat.setOnClickListener {
+            startActivity<ChatActivity>(
+                AppConstants.USER_NAME to riderName.toString(),
+                AppConstants.USER_ID to userId.toString()
+            )
+        }
 
 
-
-
-
+        
     }
 
     private fun init() {
@@ -899,7 +910,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                 if (snapshot.exists()) {
                                     var riderModel = snapshot.getValue(RiderModel::class.java)
 
-
                                     //get location
                                     if (ActivityCompat.checkSelfPermission(
                                             requireContext(),
@@ -931,6 +941,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                             tripPlanModel.driver =
                                                 FirebaseAuth.getInstance().currentUser!!.uid
                                             tripPlanModel.rider = event.key
+                                            userId = event.key
                                             tripPlanModel.driverInfoModel = Comon.currentUser
                                             tripPlanModel.riderModel = riderModel
                                             tripPlanModel.origin = event.pickupLocation
@@ -1021,6 +1032,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                                         riderModel!!.firstName + " " + riderModel!!.lastName
                                                     txt_rider_number.text = riderModel.phoneNumber
                                                     phoneNumber = riderModel.phoneNumber
+                                                    riderName = riderModel.firstName
                                                     txt_start_uber_estimate_distance.text = distance
                                                     txt_start_uber_estimate_time.text = duration
 

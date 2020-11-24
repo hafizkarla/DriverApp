@@ -269,13 +269,6 @@
                     android:backgroundTint="@color/unpressed_color"
                     android:id="@+id/btn_decline"/>
             </LinearLayout>
-
-
-
-
-
-
-
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
@@ -421,6 +414,26 @@
                             android:backgroundTint="@color/white"
                             android:layout_marginRight="6dp"
                             android:src="@drawable/ic_baseline_phone_24"
+                            app:tint="@color/white" />
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:padding="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:layout_width="48dp"
+                            android:id="@+id/btn_chat"
+                            android:layout_height="48dp"
+                            android:layout_centerVertical="true"
+                            android:src="@color/colorPrimary"/>
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="12dp"
+                            android:layout_centerVertical="true"
+                            android:backgroundTint="@color/white"
+                            android:src="@drawable/ic_baseline_chat_24"
                             app:tint="@color/white" />
                     </RelativeLayout>
                     <RelativeLayout

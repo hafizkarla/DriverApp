@@ -114,5 +114,20 @@ dependencies {
     // Firebase Authentication (Kotlin)
     implementation 'com.google.firebase:firebase-auth-ktx:19.4.0'
 
+    //anko
+    implementation "org.jetbrains.anko:anko:0.10.8"
+    implementation "org.jetbrains.anko:anko-design:0.10.8"
+    implementation "org.jetbrains.anko:anko-coroutines:0.10.8"
+
+    kotlin {
+        experimental {
+            coroutines "enable"
+        }
+    }
+
+    androidExtensions {
+        experimental = true
+    }
+
 
 }

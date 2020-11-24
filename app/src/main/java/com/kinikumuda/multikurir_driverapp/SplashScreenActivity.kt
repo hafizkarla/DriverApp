@@ -21,6 +21,7 @@ import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.iid.FirebaseInstanceId
 import com.kinikumuda.multikurir_driverapp.Model.DriverInfoModel
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit
 
 class SplashScreenActivity : AppCompatActivity() {
 
-
+    private lateinit var auth: FirebaseAuth
     companion object{
         private val LOGIN_REQUEST_CODE = 7171
     }
@@ -69,6 +70,8 @@ class SplashScreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
+
+        auth = FirebaseAuth.getInstance()
 
         // Restore instance state
         if (savedInstanceState != null) {
@@ -300,6 +303,9 @@ class SplashScreenActivity : AppCompatActivity() {
                     model.phoneNumber=edt_phone_number.text.toString()
                     model.rating=5.0
 
+                    val user: FirebaseUser? = auth.currentUser
+                    val userId:String = user!!.uid
+                    model.userId = userId
 
                     //additional
                     model.idNumber=edt_id_number.text.toString()
@@ -334,6 +340,7 @@ class SplashScreenActivity : AppCompatActivity() {
                         .addOnSuccessListener {
                             Toast.makeText(this@SplashScreenActivity,"Register successfully.",Toast.LENGTH_SHORT).show()
                             dialog.dismiss()
+
 
                             goToVerifyActivity()
 //                            goToHomeActivity(model)

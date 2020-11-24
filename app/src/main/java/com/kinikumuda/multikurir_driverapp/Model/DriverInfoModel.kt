@@ -1,6 +1,7 @@
 package com.kinikumuda.multikurir_driverapp.Model
 
 class DriverInfoModel {
+    var userId:String = ""
     var firstName:String=""
     var lastName:String=""
     var phoneNumber:String=""
