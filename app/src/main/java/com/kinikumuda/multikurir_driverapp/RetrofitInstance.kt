@@ -1,7 +1,7 @@
 package com.kinikumuda.multikurir_driverapp
 
 import com.kinikumuda.multikurir_driverapp.Constrants.Constants
-import com.kinikumuda.multikurir_driverapp.`interface`.NotificationApi
+import com.kinikumuda.multikurir_driverapp.interfaces.NotificationApi
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#00a2ea</color>
-    <color name="colorPrimaryDark">#0074b7</color>
+    <color name="colorPrimary">#FFFDBA</color>
+    <color name="colorPrimaryDark">#033000</color>
     <color name="colorAccent">#64d3ff</color>
-    <color name="lightGray">#ECECEC</color>
+    <color name="lightGray">#FAFAFA</color>
     <color name="blue">#5C9DC0</color>
     <color name="space">#181C1F</color>
     <color name="progress_bar_color">#151828</color>

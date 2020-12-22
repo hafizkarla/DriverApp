@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/colorPrimary"
     android:padding="16dp">
 
     <ImageView
@@ -12,41 +12,36 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:layout_centerInParent="true"
-        android:src="@drawable/gosami_logo" />
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/harakadriverlogo" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:layout_margin="16dp"
         android:gravity="center_horizontal"
-        android:padding="16dp">
+        android:orientation="vertical">
+
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:id="@+id/btn_phone_sign_in"
-            android:padding="16dp"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/button_selector"
-            android:textColor="@color/lightGray"
-            android:text="Sign in with Phone"
-            android:drawableStart="@drawable/ic_baseline_phone_24"
-            android:drawableTint="@color/lightGray"/>
-        <Button
-            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/colorPrimaryDark"
+            android:drawableStart="@drawable/ic_baseline_phone_24"
+            android:text="Sign in with Phone"
+            android:textColor="@color/lightGray" />
+
+        <Button
             android:id="@+id/btn_google_sign_in"
-            android:padding="16dp"
-            android:layout_marginBottom="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/button_selector"
-            android:textColor="@color/lightGray"
-            android:text="Sign in with Email"
+            android:backgroundTint="@color/colorPrimaryDark"
             android:drawableStart="@drawable/fui_ic_googleg_color_24dp"
-            />
+            android:text="Sign in with Email"
+            android:textColor="@color/lightGray"
+            android:visibility="gone" />
 
     </LinearLayout>
 

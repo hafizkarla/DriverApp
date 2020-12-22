@@ -1,4 +1,4 @@
-package com.kinikumuda.multikurir_driverapp.`interface`
+package com.kinikumuda.multikurir_driverapp.interfaces
 
 import com.kinikumuda.multikurir_driverapp.Constrants.Constants.Companion.CONTENT_TYPE
 import com.kinikumuda.multikurir_driverapp.Constrants.Constants.Companion.SERVER_KEY

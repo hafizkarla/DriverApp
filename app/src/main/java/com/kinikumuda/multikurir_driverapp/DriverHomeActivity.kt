@@ -133,6 +133,7 @@ class DriverHomeActivity : AppCompatActivity(), View.OnClickListener {
         if (Comon.currentUser != null && Comon.currentUser!!.avatar != null) {
             Glide.with(this)
                 .load(Comon.currentUser!!.avatar)
+                .placeholder(R.mipmap.ic_launcher)
                 .into(img_avatar)
         }
         img_avatar.setOnClickListener {

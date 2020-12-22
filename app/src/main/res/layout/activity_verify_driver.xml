@@ -21,7 +21,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/open_sans_bold"
             android:text="Akun Anda sedang diverifikasi. Mohon mengikuti langkah-langkah berikut: "
-            android:textColor="@color/white"
+            android:textColor="@color/colorPrimaryDark"
             android:textSize="24sp" />
     </LinearLayout>
 

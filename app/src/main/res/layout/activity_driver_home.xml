@@ -20,7 +20,7 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_driver_home"
-        app:menu="@menu/activity_driver_home_drawer"
         app:itemIconTint="@color/space"
-        app:itemTextColor="@color/space"/>
+        app:itemTextColor="@color/space"
+        app:menu="@menu/activity_driver_home_drawer" />
 </androidx.drawerlayout.widget.DrawerLayout>
