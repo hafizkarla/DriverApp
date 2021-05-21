@@ -159,12 +159,13 @@ class SplashScreenActivity : AppCompatActivity() {
                 override fun onDataChange(p0: DataSnapshot) {
                     if (p0.exists()){
                         val model=p0.getValue(DriverInfoModel::class.java)
-                        if (model!!.verification) {
-                            goToHomeActivity(model)
-                        }
-                        else{
-                            goToVerifyActivity()
-                        }
+                        goToHomeActivity(model)
+//                        if (model!!.verification) {
+//                            goToHomeActivity(model)
+//                        }
+//                        else{
+//                            goToVerifyActivity()
+//                        }
                     }
                     else{
                         showRegisterLayout()
@@ -313,7 +314,6 @@ class SplashScreenActivity : AppCompatActivity() {
                     model.driveLicense=edt_drive_license.text.toString()
                     model.vehicleLicenseNumber=edt_vehicle_license.text.toString()
 
-
                     model.agama=edt_agama.text.toString()
                     model.address=edt_address.text.toString()
                     model.status=edt_status.text.toString()
@@ -342,8 +342,8 @@ class SplashScreenActivity : AppCompatActivity() {
                             dialog.dismiss()
 
 
-                            goToVerifyActivity()
-//                            goToHomeActivity(model)
+//                            goToVerifyActivity()
+                            goToHomeActivity(model)
 
                             progress_bar.visibility= View.GONE
                         }

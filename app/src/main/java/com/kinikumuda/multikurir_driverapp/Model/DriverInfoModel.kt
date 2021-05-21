@@ -17,6 +17,6 @@ class DriverInfoModel {
     var asal:String=""
     var address:String=""
     var jenisKelamin:String=""
-    var verification:Boolean=false
+    var verification:Boolean=true
     var typeMitra:String=""
 }
